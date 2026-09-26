@@ -15,7 +15,7 @@ MODEL = os.environ.get("JEV_MODEL", "jev-1.13.0")
 USD_PER_INPUT_TOKEN = 0.042 / 1_000_000
 
 # Hard ceiling on the total spend recorded in the cache DB across all runs.
-TOTAL_BUDGET_USD = float(os.environ.get("JEV_TOTAL_BUDGET_USD", "0.50"))
+TOTAL_BUDGET_USD = float(os.environ.get("JEV_TOTAL_BUDGET_USD", "10.40"))  # account: $0.50 + $10 top-up
 
 # Documented limit is 1,200 req/min; stay below it.
 DEFAULT_RPM = 1000

@@ -40,8 +40,17 @@ def request_key(model: str, state: Any, questions: dict) -> str:
 class ResponseCache:
     def __init__(self, path: Path = CACHE_DB):
         path.parent.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(path)
+        self.db = sqlite3.connect(path, timeout=60)
+        # WAL: every response is durable once committed, a killed run can't corrupt the file, and
+        # evaluate.py/usage.py can read while a run is writing.
+        self.db.execute("PRAGMA journal_mode=WAL")
+        self.db.execute("PRAGMA synchronous=NORMAL")
         self.db.executescript(_SCHEMA)
+
+    def close(self) -> None:
+        """Fold the WAL back into the main file so the tracked responses.db is self-contained."""
+        self.db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        self.db.close()
 
     def get(self, key: str) -> dict | None:
         row = self.db.execute("SELECT response FROM responses WHERE key = ?", (key,)).fetchone()

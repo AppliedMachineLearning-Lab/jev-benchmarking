@@ -8,13 +8,7 @@ from dataclasses import dataclass, field
 
 from pydantic import BaseModel, ConfigDict
 from tqdm import tqdm
-from typesafe_sdk import (
-    AsyncTypeSafeClient,
-    RetryPolicy,
-    TypeSafeAPIError,
-    TypeSafeAuthenticationError,
-    TypeSafePermissionDeniedError,
-)
+from typesafe_sdk import AsyncTypeSafeClient, RetryPolicy, TypeSafeAPIError
 
 from jev_benchmarking.cache import ResponseCache, request_key
 from jev_benchmarking.config import MODEL, USD_PER_INPUT_TOKEN, load_api_key
@@ -43,7 +37,8 @@ def estimate_tokens(example: Example) -> int:
 class RunStats:
     cached: int = 0
     sent: int = 0
-    failed: int = 0
+    failed: int = 0  # retryable failures, left uncached for the next pass
+    permanent: int = 0  # requests the API rejects as invalid (413/422); remembered, never resent
     skipped_budget: int = 0
     input_tokens: int = 0
     errors: dict[str, int] = field(default_factory=dict)
@@ -68,8 +63,16 @@ class _RateLimiter:
             await asyncio.sleep(delay)
 
 
-class _AuthFailure(Exception):
-    pass
+class FatalAPIError(Exception):
+    """Stop the whole run: bad key, no credit, or the API keeps failing."""
+
+
+FATAL_STATUSES = {401, 402, 403}
+# Only these mean "this exact request is invalid" (e.g. state over the context limit), so it is safe to
+# remember them and never resend. Anything else (e.g. a 400 for an empty balance) must stay retryable.
+PERMANENT_STATUSES = {413, 422}
+CIRCUIT_BREAKER = 25  # consecutive failures before giving up on the run
+PROGRESS_EVERY = 60.0  # seconds between progress log lines
 
 
 async def run_examples(
@@ -81,82 +84,114 @@ async def run_examples(
     rpm: int,
     concurrency: int,
     retry_errors: bool = False,
+    transport=None,  # tests inject an httpx2 MockTransport here
+    retry: RetryPolicy | None = None,
 ) -> RunStats:
-    """Send every uncached example once. Stops scheduling when the run's spend would exceed `max_cost_usd`."""
+    """Send every uncached example once. Stops scheduling when the run's spend would exceed `max_cost_usd`.
+
+    Safe to interrupt at any point: each response is committed as it arrives, and a rerun only sends
+    what is still missing. Raises `FatalAPIError` when continuing is pointless.
+    """
     stats = RunStats()
     keys = [request_key(MODEL, ex.state, ex.questions) for ex in examples]
     have = cache.get_many(keys)
     known_errors = set() if retry_errors else cache.error_keys()
 
-    todo = []
+    queue: asyncio.Queue = asyncio.Queue()
     seen = set()
     for ex, key in zip(examples, keys):
         if key in have:
             stats.cached += 1
         elif key in known_errors:
-            stats.failed += 1
+            stats.permanent += 1
         elif key not in seen:  # identical requests (e.g. duplicated rows) are paid once
             seen.add(key)
-            todo.append((ex, key))
-    if not todo:
+            queue.put_nowait((ex, key))
+    total = queue.qsize()
+    if not total:
         return stats
 
     limiter = _RateLimiter(rpm)
-    sem = asyncio.Semaphore(concurrency)
-    reserved = 0  # estimated tokens of in-flight requests
     budget_tokens = max_cost_usd / USD_PER_INPUT_TOKEN
-    lock = asyncio.Lock()
-    auth_failed = asyncio.Event()
-    bar = tqdm(total=len(todo), desc=task_name, unit="req", leave=False)
+    reserved = 0  # estimated tokens of in-flight requests
+    consecutive_failures = 0
+    fatal: list[str] = []
+    stop = asyncio.Event()
+    bar = tqdm(total=total, desc=task_name, unit="req", leave=False, disable=None)  # silent when not a TTY
+    t_start = last_log = time.monotonic()
+
+    def fail(label: str, message: str) -> None:
+        nonlocal consecutive_failures
+        stats.failed += 1
+        stats.errors[label] = stats.errors.get(label, 0) + 1
+        consecutive_failures += 1
+        if consecutive_failures >= CIRCUIT_BREAKER and not stop.is_set():
+            fatal.append(f"{CIRCUIT_BREAKER} consecutive failures, last: {message[:300]}")
+            stop.set()
 
     async with AsyncTypeSafeClient(
         api_key=load_api_key(),
         model=MODEL,
         timeout=60.0,
-        retry=RetryPolicy(max_retries=6, backoff_max=30.0, timeout=180.0),
+        retry=retry or RetryPolicy(max_retries=6, backoff_max=30.0, timeout=180.0),
+        transport=transport,
     ) as client:
 
-        async def one(ex: Example, key: str) -> None:
-            nonlocal reserved
-            est = estimate_tokens(ex)
-            async with sem:
-                if auth_failed.is_set():
+        async def worker() -> None:
+            nonlocal reserved, consecutive_failures, last_log
+            while not stop.is_set():
+                try:
+                    ex, key = queue.get_nowait()
+                except asyncio.QueueEmpty:
                     return
-                async with lock:
-                    if stats.input_tokens + reserved + est > budget_tokens:
-                        stats.skipped_budget += 1
-                        return
-                    reserved += est
+                est = estimate_tokens(ex)
+                if stats.input_tokens + reserved + est > budget_tokens:
+                    stats.skipped_budget += 1
+                    continue
+                reserved += est
                 try:
                     await limiter.wait()
+                    if stop.is_set():
+                        return
                     t0 = time.monotonic()
                     resp = await client.system_one(ex.state, ex.questions, response_model=RawResponse)
-                    latency = time.monotonic() - t0
                     body = resp.model_dump()
-                    cache.put(key, task_name, body, est, latency)
+                    cache.put(key, task_name, body, est, time.monotonic() - t0)
                     stats.sent += 1
                     stats.input_tokens += int((body.get("usage") or {}).get("input_tokens") or 0)
-                except (TypeSafeAuthenticationError, TypeSafePermissionDeniedError) as e:
-                    auth_failed.set()
-                    raise _AuthFailure(f"authentication failed (HTTP {e.status})") from None
+                    consecutive_failures = 0
                 except TypeSafeAPIError as e:
-                    stats.failed += 1
-                    stats.errors[str(e.status)] = stats.errors.get(str(e.status), 0) + 1
-                    # 4xx means the request itself is bad: remember it so it isn't resent (and re-billed).
-                    if 400 <= (e.status or 0) < 500 and e.status not in (408, 429):
-                        cache.put_error(key, task_name, e.status, str(e))
-                    log.warning("%s %s: HTTP %s %s", task_name, ex.uid, e.status, str(e)[:300])
-                except Exception as e:  # connection errors/timeouts after retries: leave uncached, retry next run
-                    stats.failed += 1
-                    stats.errors[type(e).__name__] = stats.errors.get(type(e).__name__, 0) + 1
+                    status = e.status or 0
+                    if status in FATAL_STATUSES:
+                        fatal.append(f"HTTP {status}: {str(e)[:300]}")
+                        stop.set()
+                        return
+                    if status in PERMANENT_STATUSES:
+                        cache.put_error(key, task_name, status, str(e))
+                        stats.permanent += 1
+                        log.info("%s %s: HTTP %s (remembered, not resent) %s", task_name, ex.uid, status, str(e)[:200])
+                    else:
+                        fail(str(status), f"HTTP {status}: {e}")
+                        log.warning("%s %s: HTTP %s %s", task_name, ex.uid, status, str(e)[:300])
+                except Exception as e:  # connection errors/timeouts after retries: left uncached for the next pass
+                    fail(type(e).__name__, f"{type(e).__name__}: {e}")
                     log.warning("%s %s: %s %s", task_name, ex.uid, type(e).__name__, str(e)[:300])
                 finally:
-                    async with lock:
-                        reserved -= est
+                    reserved -= est
                     bar.update()
+                now = time.monotonic()
+                if now - last_log >= PROGRESS_EVERY:
+                    last_log = now
+                    rate = stats.sent / (now - t_start) * 60
+                    log.info(
+                        "%s: %d/%d sent, %d failed, %.0f req/min, $%.4f this task",
+                        task_name, stats.sent, total, stats.failed, rate, stats.cost_usd,
+                    )  # fmt: skip
 
         try:
-            await asyncio.gather(*(one(ex, key) for ex, key in todo))
+            await asyncio.gather(*(worker() for _ in range(concurrency)))
         finally:
             bar.close()
+    if fatal:
+        raise FatalAPIError(f"{task_name}: {fatal[0]}")
     return stats

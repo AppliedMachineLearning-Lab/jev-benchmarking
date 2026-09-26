@@ -1,0 +1,32 @@
+{
+ "task": "ceval",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.9,
+  "ci95": [
+   0.75,
+   1.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9,
+   "ece": 0.188,
+   "brier": 0.20317,
+   "mean_top_prob": 0.851,
+   "mean_confidence": 0.7985,
+   "sel_acc@50": 0.9,
+   "sel_acc@80": 0.9375,
+   "aurc": 0.0463479268839176,
+   "macro_f1": 0.902991452991453
+  }
+ },
+ "aggregate": {},
+ "subsets": {}
+}

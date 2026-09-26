@@ -1,0 +1,31 @@
+{
+ "task": "hellaswag",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.95,
+  "ci95": [
+   0.85,
+   1.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.95,
+   "ece": 0.04800000000000001,
+   "brier": 0.071135,
+   "mean_top_prob": 0.968,
+   "mean_confidence": 0.9569999999999999,
+   "sel_acc@50": 1.0,
+   "sel_acc@80": 1.0,
+   "aurc": 0.0025,
+   "macro_f1": 0.9352941176470588
+  }
+ },
+ "aggregate": {}
+}

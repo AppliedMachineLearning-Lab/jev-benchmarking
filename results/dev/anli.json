@@ -1,0 +1,32 @@
+{
+ "task": "anli",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.8,
+  "ci95": [
+   0.6,
+   0.95
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.8,
+   "ece": 0.11200000000000002,
+   "brier": 0.21877,
+   "mean_top_prob": 0.841,
+   "mean_confidence": 0.759,
+   "sel_acc@50": 1.0,
+   "sel_acc@80": 0.9375,
+   "aurc": 0.03642123077301096,
+   "macro_f1": 0.8047138047138046
+  }
+ },
+ "aggregate": {},
+ "subsets": {}
+}

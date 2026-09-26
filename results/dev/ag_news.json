@@ -1,0 +1,31 @@
+{
+ "task": "ag_news",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.75,
+  "ci95": [
+   0.55,
+   0.9
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.75,
+   "ece": 0.20399999999999996,
+   "brier": 0.3551,
+   "mean_top_prob": 0.9289999999999999,
+   "mean_confidence": 0.9055,
+   "sel_acc@50": 1.0,
+   "sel_acc@80": 0.9375,
+   "aurc": 0.04727176396874539,
+   "macro_f1": 0.678030303030303
+  }
+ },
+ "aggregate": {}
+}

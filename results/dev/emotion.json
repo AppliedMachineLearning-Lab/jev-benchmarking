@@ -1,0 +1,31 @@
+{
+ "task": "emotion",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.6,
+  "ci95": [
+   0.4,
+   0.8
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.6,
+   "ece": 0.321,
+   "brier": 0.617495,
+   "mean_top_prob": 0.8019999999999999,
+   "mean_confidence": 0.762,
+   "sel_acc@50": 0.7,
+   "sel_acc@80": 0.6875,
+   "aurc": 0.41202074950333467,
+   "macro_f1": 0.4523809523809524
+  }
+ },
+ "aggregate": {}
+}

@@ -1,0 +1,32 @@
+{
+ "task": "agb_de",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "f1",
+  "value": 0.0,
+  "ci95": [
+   0.0,
+   0.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.85,
+   "balanced_accuracy": 0.425,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.308,
+   "brier": 0.12726,
+   "positive_rate": 0.0
+  }
+ },
+ "aggregate": {}
+}

@@ -2,10 +2,12 @@
 data/
 logs/
 models/
-cache/
+cache/*
 deep-dive/
 *.db
 .env
+# Paid Jev responses + spend ledger: keep under version control
+!cache/responses.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

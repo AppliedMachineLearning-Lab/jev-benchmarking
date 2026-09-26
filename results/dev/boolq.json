@@ -1,0 +1,32 @@
+{
+ "task": "boolq",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.95,
+  "ci95": [
+   0.8,
+   1.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.95,
+   "balanced_accuracy": 0.96875,
+   "f1": 0.967741935483871,
+   "precision": 1.0,
+   "recall": 0.9375,
+   "auroc": 1.0,
+   "auprc": 1.0,
+   "ece": 0.10099999999999998,
+   "brier": 0.04333,
+   "positive_rate": 0.8
+  }
+ },
+ "aggregate": {}
+}

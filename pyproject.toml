@@ -1,0 +1,26 @@
+[project]
+name = "jev-benchmarking"
+version = "0.1.0"
+description = "Benchmarking TypeSafe's Jev (System One) model on open-source datasets"
+requires-python = ">=3.10"
+dependencies = [
+    "typesafe-sdk>=0.7",
+    "datasets>=4.0",
+    "numpy",
+    "scipy",
+    "scikit-learn",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["jev_benchmarking*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

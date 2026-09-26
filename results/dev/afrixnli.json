@@ -1,0 +1,32 @@
+{
+ "task": "afrixnli",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.7,
+  "ci95": [
+   0.45,
+   0.9
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.7,
+   "ece": 0.255,
+   "brier": 0.4587800000000001,
+   "mean_top_prob": 0.8219999999999998,
+   "mean_confidence": 0.73,
+   "sel_acc@50": 0.7,
+   "sel_acc@80": 0.75,
+   "aurc": 0.21664240343419908,
+   "macro_f1": 0.6626984126984127
+  }
+ },
+ "aggregate": {},
+ "subsets": {}
+}

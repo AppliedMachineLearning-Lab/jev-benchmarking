@@ -1,0 +1,31 @@
+{
+ "task": "bigbench",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.8,
+  "ci95": [
+   0.6,
+   0.95
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.8,
+   "ece": 0.14700000000000002,
+   "brier": 0.32141000000000003,
+   "mean_top_prob": 0.845,
+   "mean_confidence": 0.7835000000000001,
+   "sel_acc@50": 0.9,
+   "sel_acc@80": 0.9375,
+   "aurc": 0.05692068230187426
+  }
+ },
+ "aggregate": {},
+ "subsets": {}
+}

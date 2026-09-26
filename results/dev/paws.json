@@ -1,0 +1,32 @@
+{
+ "task": "paws",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.95,
+  "ci95": [
+   0.8,
+   1.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.95,
+   "balanced_accuracy": 0.95,
+   "f1": 0.9473684210526315,
+   "precision": 1.0,
+   "recall": 0.9,
+   "auroc": 0.9700000000000001,
+   "auprc": 0.9769230769230768,
+   "ece": 0.1395,
+   "brier": 0.06883499999999998,
+   "positive_rate": 0.5
+  }
+ },
+ "aggregate": {}
+}

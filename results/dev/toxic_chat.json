@@ -1,0 +1,44 @@
+{
+ "task": "toxic_chat",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "toxic",
+  "metric": "f1",
+  "value": 1.0,
+  "ci95": [
+   0.0,
+   1.0
+  ]
+ },
+ "heads": {
+  "toxic": {
+   "accuracy": 1.0,
+   "balanced_accuracy": 1.0,
+   "f1": 1.0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "auroc": 1.0,
+   "auprc": 1.0,
+   "ece": 0.020999999999999998,
+   "brier": 0.0013000000000000002,
+   "positive_rate": 0.05
+  },
+  "jailbreak": {
+   "accuracy": 1.0,
+   "balanced_accuracy": 1.0,
+   "f1": 1.0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "auroc": 1.0,
+   "auprc": 1.0,
+   "ece": 0.038500000000000006,
+   "brier": 0.006055000000000002,
+   "positive_rate": 0.05
+  }
+ },
+ "aggregate": {}
+}

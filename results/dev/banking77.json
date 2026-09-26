@@ -1,0 +1,31 @@
+{
+ "task": "banking77",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.85,
+  "ci95": [
+   0.7,
+   1.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.85,
+   "ece": 0.11449999999999996,
+   "brier": 0.2826099999999999,
+   "mean_top_prob": 0.8805,
+   "mean_confidence": 0.8734999999999999,
+   "sel_acc@50": 0.9,
+   "sel_acc@80": 0.875,
+   "aurc": 0.0631012378574298,
+   "macro_f1": 0.7333333333333333
+  }
+ },
+ "aggregate": {}
+}

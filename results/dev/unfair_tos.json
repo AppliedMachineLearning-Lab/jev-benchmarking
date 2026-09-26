@@ -1,0 +1,122 @@
+{
+ "task": "unfair_tos",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "*",
+  "metric": "micro_f1",
+  "value": 0.2,
+  "ci95": [
+   0.0,
+   0.6
+  ]
+ },
+ "heads": {
+  "limitation_of_liability": {
+   "accuracy": 0.95,
+   "balanced_accuracy": 0.475,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.099,
+   "brier": 0.05353,
+   "positive_rate": 0.0
+  },
+  "unilateral_termination": {
+   "accuracy": 0.95,
+   "balanced_accuracy": 0.475,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.053500000000000006,
+   "brier": 0.023645000000000003,
+   "positive_rate": 0.0
+  },
+  "unilateral_change": {
+   "accuracy": 0.9,
+   "balanced_accuracy": 0.45,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.1135,
+   "brier": 0.084005,
+   "positive_rate": 0.0
+  },
+  "content_removal": {
+   "accuracy": 1.0,
+   "balanced_accuracy": 0.5,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.015500000000000003,
+   "brier": 0.00028500000000000004,
+   "positive_rate": 0.0
+  },
+  "contract_by_using": {
+   "accuracy": 0.95,
+   "balanced_accuracy": 0.475,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.10900000000000001,
+   "brier": 0.029559999999999996,
+   "positive_rate": 0.0
+  },
+  "choice_of_law": {
+   "accuracy": 1.0,
+   "balanced_accuracy": 0.5,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.02,
+   "brier": 0.0017600000000000005,
+   "positive_rate": 0.0
+  },
+  "jurisdiction": {
+   "accuracy": 1.0,
+   "balanced_accuracy": 0.5,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": NaN,
+   "auprc": NaN,
+   "ece": 0.021500000000000002,
+   "brier": 0.001975,
+   "positive_rate": 0.0
+  },
+  "arbitration": {
+   "accuracy": 0.85,
+   "balanced_accuracy": 0.9210526315789473,
+   "f1": 0.4,
+   "precision": 0.25,
+   "recall": 1.0,
+   "auroc": 1.0,
+   "auprc": 1.0,
+   "ece": 0.101,
+   "brier": 0.054790000000000005,
+   "positive_rate": 0.05
+  }
+ },
+ "aggregate": {
+  "micro_f1": 0.2,
+  "macro_f1": 0.05,
+  "exact_match": 0.7,
+  "mean_auroc": 1.0,
+  "mean_auprc": 1.0
+ }
+}

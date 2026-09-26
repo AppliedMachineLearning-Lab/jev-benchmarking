@@ -1,0 +1,31 @@
+{
+ "task": "financial_phrasebank",
+ "n_examples": 20,
+ "n_answered": 20,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.8,
+  "ci95": [
+   0.6,
+   1.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.8,
+   "ece": 0.16000000000000003,
+   "brier": 0.31701999999999997,
+   "mean_top_prob": 0.9119999999999999,
+   "mean_confidence": 0.8665,
+   "sel_acc@50": 1.0,
+   "sel_acc@80": 0.8125,
+   "aurc": 0.0672229698835736,
+   "macro_f1": 0.8222222222222223
+  }
+ },
+ "aggregate": {}
+}

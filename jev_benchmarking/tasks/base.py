@@ -10,6 +10,7 @@ is scored:
 """
 
 import hashlib
+import json
 import logging
 import string
 import time
@@ -17,9 +18,24 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from datasets import load_dataset
+from datasets import get_dataset_config_names, load_dataset
+
+from jev_benchmarking.config import ROOT
 
 log = logging.getLogger(__name__)
+_CONFIG_CACHE = ROOT / "cache" / "hf_config_names.json"
+
+
+def hub_config_names(path: str) -> list[str]:
+    """`get_dataset_config_names`, memoized on disk so datasets can be rebuilt with HF_HUB_OFFLINE=1
+    (and without ~2 s of Hub round-trips per config)."""
+    cached = json.loads(_CONFIG_CACHE.read_text()) if _CONFIG_CACHE.is_file() else {}
+    if path not in cached:
+        cached[path] = get_dataset_config_names(path)
+        _CONFIG_CACHE.parent.mkdir(parents=True, exist_ok=True)
+        _CONFIG_CACHE.write_text(json.dumps(cached, indent=1))
+    return cached[path]
+
 
 HeadKind = Literal["choice", "binary", "score"]
 

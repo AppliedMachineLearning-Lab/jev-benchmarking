@@ -7,7 +7,7 @@ datasets. The dataset audit and selection rationale are in [docs/datasets.md](do
 
 ```fish
 uvactivate jevbenchmarking
-uv pip install -e ".[dev]"
+uv pip install -e ".[dev,paper]"
 ```
 
 The API key is read from `$TYPESAFE_API_KEY` or, if unset, from
@@ -23,6 +23,7 @@ python scripts/run.py all --split dev --limit 20 --dry-run --show 1   # inspect 
 python scripts/run.py all --split dev --limit 20 --max-cost 0.05      # send (asks for confirmation)
 python scripts/evaluate.py all --split dev --limit 20                 # metrics -> results/dev/
 python scripts/usage.py                         # spend per task, estimate accuracy, 4xx errors
+HF_HUB_OFFLINE=1 python scripts/make_paper_assets.py   # tables/figures -> paper/ (needs .[paper]; no API calls)
 pytest                                          # offline tests
 ```
 
@@ -34,7 +35,7 @@ pytest                                          # offline tests
   request. Nothing is ever paid for twice, and `evaluate.py` never calls the API. The same table is
   the spend ledger.
 - **Spend guards:** `--max-cost` caps a run (default $0.02), and `JEV_TOTAL_BUDGET_USD`
-  (default $0.50) caps the total recorded in the ledger.
+  (default $10.40) caps the total recorded in the ledger.
 
 ## Layout
 
@@ -42,4 +43,5 @@ pytest                                          # offline tests
 - `jev_benchmarking/runner.py`: async, rate-limited sender with a budget guard
 - `jev_benchmarking/evaluate.py`, `metrics.py`: accuracy/F1/correlation, calibration (ECE, Brier),
   selective accuracy, bootstrap CIs
+- `jev_benchmarking/report/`: paper tables (LaTeX, template style) and figures (plotnine + tol-colors)
 - `scripts/`: entry points

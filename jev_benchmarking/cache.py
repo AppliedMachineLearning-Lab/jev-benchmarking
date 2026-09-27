@@ -97,10 +97,12 @@ class ResponseCache:
         (tokens,) = self.db.execute("SELECT COALESCE(SUM(input_tokens), 0) FROM responses").fetchone()
         return tokens * USD_PER_INPUT_TOKEN
 
-    def usage_by_task(self) -> list[tuple]:
+    def usage_by_task(self, since: float = 0.0) -> list[tuple]:
+        """(task, requests, input tokens, estimated tokens, mean latency) for responses created at/after `since`."""
         return self.db.execute(
             """SELECT task, COUNT(*), SUM(input_tokens), SUM(est_tokens), AVG(latency_s)
-               FROM responses GROUP BY task ORDER BY SUM(input_tokens) DESC"""
+               FROM responses WHERE created_at >= ? GROUP BY task ORDER BY SUM(input_tokens) DESC""",
+            (since,),
         ).fetchall()
 
     def errors_by_task(self) -> list[tuple]:

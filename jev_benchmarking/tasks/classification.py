@@ -2,9 +2,9 @@
 
 from functools import cached_property
 
-from datasets import get_dataset_config_names, load_dataset
+from datasets import load_dataset
 
-from jev_benchmarking.tasks.base import Primary, Task, choice, ex, noul
+from jev_benchmarking.tasks.base import Primary, Task, choice, ex, hub_config_names, noul
 
 SENTIMENT_2 = {
     "negative": "The text expresses a negative opinion.",
@@ -126,7 +126,7 @@ class SIB200(Task):
     description = "Topic classification in 205 language varieties, 7 classes."
 
     def list_configs(self):
-        return get_dataset_config_names(self.hf_path)
+        return hub_config_names(self.hf_path)
 
     def build(self, row, config):
         q = choice("What is the topic of `text`?", {l: None for l in self.labels})

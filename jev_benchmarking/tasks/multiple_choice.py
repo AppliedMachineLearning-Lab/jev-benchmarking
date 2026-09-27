@@ -4,9 +4,7 @@ import json
 import re
 from pathlib import Path
 
-from datasets import get_dataset_config_names
-
-from jev_benchmarking.tasks.base import Primary, Task, choice, ex, mc_criteria, noul, option_keys
+from jev_benchmarking.tasks.base import Primary, Task, choice, ex, hub_config_names, mc_criteria, noul, option_keys
 
 MC_INSTRUCTION = "Which option correctly answers `question`?"
 
@@ -18,7 +16,7 @@ class Belebele(Task):
     description = "Multilingual reading comprehension (FLORES passages), 122 language variants, 4 options."
 
     def list_configs(self):
-        return get_dataset_config_names(self.hf_path)
+        return hub_config_names(self.hf_path)
 
     def build(self, row, config):
         options = [row[f"mc_answer{i}"].strip() for i in range(1, 5)]
@@ -61,7 +59,7 @@ class MMLU(Task):
     description = "Knowledge QA over 57 subjects, 4 options."
 
     def list_configs(self):
-        return get_dataset_config_names(self.hf_path)
+        return hub_config_names(self.hf_path)
 
     def build(self, row, config):
         q = choice(MC_INSTRUCTION, mc_criteria(row["choices"]))
@@ -76,7 +74,7 @@ class CEval(Task):
     description = "Chinese exam questions over 52 subjects, 4 options."
 
     def list_configs(self):
-        return get_dataset_config_names(self.hf_path)
+        return hub_config_names(self.hf_path)
 
     def build(self, row, config):
         if row["answer"] not in ("A", "B", "C", "D"):

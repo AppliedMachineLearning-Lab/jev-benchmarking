@@ -3,9 +3,9 @@
 from collections import defaultdict
 
 import numpy as np
-from datasets import get_dataset_config_names, load_dataset
+from datasets import load_dataset
 
-from jev_benchmarking.tasks.base import Primary, Task, choice, ex, noul
+from jev_benchmarking.tasks.base import Primary, Task, choice, ex, hub_config_names, noul
 
 NLI_LABELS = ("entailment", "neutral", "contradiction")  # XNLI/MNLI/ANLI label order
 NLI_CRITERIA = {
@@ -40,7 +40,7 @@ class AfriXNLI(Task):
     description = "NLI in 16 African languages + English/French (IrokoBench), 3 classes."
 
     def list_configs(self):
-        return get_dataset_config_names(self.hf_path)
+        return hub_config_names(self.hf_path)
 
     def build(self, row, config):
         return nli_example(row["premise"], row["hypothesis"], row["label"])

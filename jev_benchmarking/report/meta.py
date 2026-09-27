@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass
 
+from jev_benchmarking.tasks.probes import QUANTITATIVE_SUBJECTS  # noqa: F401  (re-exported for figures)
+
 
 @dataclass(frozen=True)
 class DatasetMeta:
@@ -82,18 +84,3 @@ METRIC_LABELS = {
 
 # Split names as reported (the HF split we score on).
 SPLIT_LABELS = {"test": "test", "validation": "val.", "val": "val.", "train": "all", "dev": "dev"}
-
-# MMLU / C-Eval subjects whose items mostly require calculation (Jev's documented numeric weak spot).
-QUANTITATIVE_SUBJECTS = {
-    "mmlu": {
-        "abstract_algebra", "college_mathematics", "elementary_mathematics", "high_school_mathematics",
-        "high_school_statistics", "college_physics", "high_school_physics", "college_chemistry",
-        "high_school_chemistry", "econometrics", "formal_logic", "conceptual_physics", "machine_learning",
-    },
-    "ceval": {
-        "advanced_mathematics", "discrete_mathematics", "probability_and_statistics", "college_physics",
-        "college_chemistry", "high_school_mathematics", "high_school_physics", "high_school_chemistry",
-        "middle_school_mathematics", "middle_school_physics", "middle_school_chemistry", "accountant",
-        "tax_accountant", "electrical_engineer", "metrology_engineer",
-    },
-}  # fmt: skip

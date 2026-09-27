@@ -1,0 +1,32 @@
+[
+ {
+  "benchmark": "MMLU",
+  "condition": "original",
+  "n": 2207,
+  "accuracy": 0.9433620299048482
+ },
+ {
+  "benchmark": "MMLU",
+  "condition": "options rotated",
+  "n": 2207,
+  "accuracy": 0.942908926144087
+ },
+ {
+  "benchmark": "MMLU",
+  "condition": "question withheld",
+  "n": 2207,
+  "accuracy": 0.31490711372904395
+ },
+ {
+  "benchmark": "C-Eval",
+  "condition": "original",
+  "n": 3389,
+  "accuracy": 0.8143995278843317
+ },
+ {
+  "benchmark": "C-Eval",
+  "condition": "question withheld",
+  "n": 3389,
+  "accuracy": 0.372971377987607
+ }
+]

@@ -4,7 +4,7 @@ import pandas as pd
 
 from jev_benchmarking.cache import ResponseCache, request_key
 from jev_benchmarking.config import MODEL, ROOT
-from jev_benchmarking.tasks import TASKS
+from jev_benchmarking.tasks import ALL_TASKS
 
 RECORDS_DIR = ROOT / "cache" / "records"
 
@@ -39,10 +39,12 @@ def _row(task, e, head: str, ans: dict) -> dict:
     return r
 
 
-def build_records(task_name: str, split: str = "eval", cache: ResponseCache | None = None) -> pd.DataFrame:
-    task = TASKS[task_name]
+def build_records(
+    task_name: str, split: str = "eval", limit: int | None = None, cache: ResponseCache | None = None
+) -> pd.DataFrame:
+    task = ALL_TASKS[task_name]
     cache = cache or ResponseCache()
-    examples = task.examples(split)
+    examples = task.examples(split, limit=limit)
     responses = cache.get_many([request_key(MODEL, e.state, e.questions) for e in examples])
     rows = []
     for e in examples:
@@ -54,11 +56,11 @@ def build_records(task_name: str, split: str = "eval", cache: ResponseCache | No
     return pd.DataFrame(rows)
 
 
-def load_records(task_name: str, split: str = "eval", refresh: bool = False) -> pd.DataFrame:
-    path = RECORDS_DIR / split / f"{task_name}.parquet"
+def load_records(task_name: str, split: str = "eval", limit: int | None = None, refresh: bool = False) -> pd.DataFrame:
+    path = RECORDS_DIR / split / f"{task_name}{'' if limit is None else f'.limit{limit}'}.parquet"
     if path.is_file() and not refresh:
         return pd.read_parquet(path)
-    df = build_records(task_name, split)
+    df = build_records(task_name, split, limit)
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path, index=False)
     return df

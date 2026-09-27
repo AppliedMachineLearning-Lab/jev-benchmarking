@@ -81,3 +81,23 @@ def test_primary_star_tasks_define_aggregate():
     for task in TASKS.values():
         if task.primary == Primary("*", task.primary.metric):
             assert task.multilabel or type(task).extra_metrics is not Task.extra_metrics, task.name
+
+
+def test_shuffled_probe_moves_every_option_and_keeps_gold():
+    from jev_benchmarking.tasks.probes import MMLUShuffled
+
+    task = MMLUShuffled()
+    for q in ("q1", "q2", "q3", "q4", "q5", "q6"):
+        row = {"question": q, "choices": ["w", "x", "y", "z"], "answer": 1}
+        e = task.build(row, "college_mathematics")
+        crit = e.questions["answer"]["criteria"]
+        assert crit[e.gold["answer"]] == "x"
+        assert all(crit[k] != orig for k, orig in zip("ABCD", ["w", "x", "y", "z"]))
+
+
+def test_probes_are_not_part_of_all():
+    from jev_benchmarking.tasks import PROBES, get_tasks
+
+    names = {t.name for t in get_tasks(["all"])}
+    assert names.isdisjoint(PROBES)
+    assert {t.name for t in get_tasks(["probes"])} == set(PROBES)

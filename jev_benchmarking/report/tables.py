@@ -157,3 +157,51 @@ def cost(since: float, cache: ResponseCache | None = None) -> str:
 def subset_summary(results: dict[str, dict], task: str, n_extremes: int = 5) -> tuple[list, list]:
     subs = sorted(results[task]["subsets"].items(), key=lambda kv: kv[1]["primary"])
     return subs[:n_extremes], subs[-n_extremes:]
+
+
+def _boot_ci(x, n_boot: int = 1000, seed: int = 0) -> tuple[float, float]:
+    import numpy as np
+
+    rng = np.random.default_rng(seed)
+    x = np.asarray(x, dtype=float)
+    means = x[rng.integers(0, len(x), (n_boot, len(x)))].mean(axis=1)
+    return float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))
+
+
+THRESHOLD_ROWS = [
+    ("go_emotions", "macro_f1", "Macro-F1"),
+    ("go_emotions", "micro_f1", "Micro-F1"),
+    ("unfair_tos", "micro_f1", "Micro-F1"),
+    ("unfair_tos", "macro_f1", "Macro-F1"),
+    ("agb_de", "f1/answer", "F1"),
+    ("toxic_chat", "f1/toxic", "F1 (toxicity)"),
+    ("toxic_chat", "f1/jailbreak", "F1 (jailbreaking)"),
+]
+
+
+def thresholds(summary: dict[str, dict]) -> str:
+    """Fixed 0.5 vs. per-question thresholds tuned on a training/validation sample."""
+    body, prev, shade = [], None, True
+    for t, key, label in THRESHOLD_ROWS:
+        if t != prev:
+            shade = not shade
+        fixed, tuned = summary[t]["fixed"][key], summary[t]["tuned"][key]
+        name = META[t].name if t != prev else ""
+        body.append(f"{SHADE if shade else ''}{name} & {label} & {_f(fixed)} & {_f(tuned)} & {tuned - fixed:+.3f} \\\\")
+        prev = t
+    return _tabular("l l c c c", "Dataset & Metric & Fixed 0.5 & Tuned & $\\Delta$", body)
+
+
+def probes(rows: list[dict]) -> str:
+    """Contamination probe on calculation-heavy subjects: accuracy per condition with bootstrap CI."""
+    body, prev, shade = [], None, True
+    for r in rows:
+        if r["benchmark"] != prev:
+            shade = not shade
+        lo, hi = _boot_ci(r["correct"])
+        name = r["benchmark"] if r["benchmark"] != prev else ""
+        body.append(
+            f"{SHADE if shade else ''}{name} & {r['condition']} & {_int(len(r['correct']))} & {_f(float(sum(r['correct']) / len(r['correct'])))} & [{_f(lo)}, {_f(hi)}] \\\\"
+        )
+        prev = r["benchmark"]
+    return _tabular("l l r c c", "Benchmark & Condition & $n$ & Acc.$\\uparrow$ & 95\\% CI", body)

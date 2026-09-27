@@ -2,6 +2,7 @@
 
 from jev_benchmarking.tasks import classification, multiple_choice, nli, safety, scoring
 from jev_benchmarking.tasks.base import Example, Task
+from jev_benchmarking.tasks.probes import PROBES
 
 _CLASSES = [
     # classification
@@ -25,13 +26,19 @@ TASKS: dict[str, Task] = {cls.name: cls() for cls in _CLASSES}
 assert len(TASKS) == len(_CLASSES), "duplicate task name"
 
 
+# Everything addressable by name. "all" means the benchmark suite only, never the probes.
+ALL_TASKS: dict[str, Task] = {**TASKS, **PROBES}
+
+
 def get_tasks(names: list[str] | None) -> list[Task]:
     if not names or names == ["all"]:
         return list(TASKS.values())
-    unknown = [n for n in names if n not in TASKS]
+    if names == ["probes"]:
+        return list(PROBES.values())
+    unknown = [n for n in names if n not in ALL_TASKS]
     if unknown:
-        raise SystemExit(f"Unknown task(s): {', '.join(unknown)}. Known: {', '.join(TASKS)}")
-    return [TASKS[n] for n in names]
+        raise SystemExit(f"Unknown task(s): {', '.join(unknown)}. Known: {', '.join(ALL_TASKS)}")
+    return [ALL_TASKS[n] for n in names]
 
 
-__all__ = ["TASKS", "Example", "Task", "get_tasks"]
+__all__ = ["ALL_TASKS", "PROBES", "TASKS", "Example", "Task", "get_tasks"]

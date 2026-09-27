@@ -1,0 +1,163 @@
+{
+ "go_emotions": {
+  "thresholds": {
+   "admiration": 0.85,
+   "amusement": 0.85,
+   "anger": 0.85,
+   "annoyance": 0.91,
+   "approval": 0.41,
+   "caring": 0.82,
+   "confusion": 0.76,
+   "curiosity": 0.91,
+   "desire": 0.96,
+   "disappointment": 0.94,
+   "disapproval": 0.84,
+   "disgust": 0.97,
+   "embarrassment": 0.88,
+   "excitement": 0.86,
+   "fear": 0.83,
+   "gratitude": 0.86,
+   "grief": 0.88,
+   "joy": 0.92,
+   "love": 0.71,
+   "nervousness": 0.7,
+   "neutral": 0.09,
+   "optimism": 0.89,
+   "pride": 0.95,
+   "realization": 0.84,
+   "relief": 0.94,
+   "remorse": 0.63,
+   "sadness": 0.8,
+   "surprise": 0.91
+  },
+  "dev_examples": 1000,
+  "fixed": {
+   "f1/admiration": 0.4646118721461187,
+   "f1/amusement": 0.2795100222717149,
+   "f1/anger": 0.26056945642795515,
+   "f1/annoyance": 0.2256842105263158,
+   "f1/approval": 0.18189730200174065,
+   "f1/caring": 0.12550066755674233,
+   "f1/confusion": 0.25757575757575757,
+   "f1/curiosity": 0.4462311557788945,
+   "f1/desire": 0.09973404255319149,
+   "f1/disappointment": 0.1295387634936212,
+   "f1/disapproval": 0.15772179627601315,
+   "f1/disgust": 0.17468354430379746,
+   "f1/embarrassment": 0.13973799126637554,
+   "f1/excitement": 0.12404287901990811,
+   "f1/fear": 0.36363636363636365,
+   "f1/gratitude": 0.7743589743589744,
+   "f1/grief": 0.04854368932038835,
+   "f1/joy": 0.18058384249830278,
+   "f1/love": 0.528023598820059,
+   "f1/nervousness": 0.08086253369272237,
+   "f1/neutral": 0.3603672532517215,
+   "f1/optimism": 0.16133333333333333,
+   "f1/pride": 0.0995850622406639,
+   "f1/realization": 0.12773722627737227,
+   "f1/relief": 0.06569343065693431,
+   "f1/remorse": 0.4057971014492754,
+   "f1/sadness": 0.36363636363636365,
+   "f1/surprise": 0.18780096308186195,
+   "micro_f1": 0.23937638387576207,
+   "macro_f1": 0.2433928284804458
+  },
+  "tuned": {
+   "f1/admiration": 0.525328330206379,
+   "f1/amusement": 0.6149253731343284,
+   "f1/anger": 0.40585774058577406,
+   "f1/annoyance": 0.3034300791556728,
+   "f1/approval": 0.18030842230130487,
+   "f1/caring": 0.21755725190839695,
+   "f1/confusion": 0.3121597096188748,
+   "f1/curiosity": 0.38477801268498946,
+   "f1/desire": 0.3271375464684015,
+   "f1/disappointment": 0.2366412213740458,
+   "f1/disapproval": 0.19641754169240272,
+   "f1/disgust": 0.33112582781456956,
+   "f1/embarrassment": 0.125,
+   "f1/excitement": 0.20481927710843373,
+   "f1/fear": 0.4748201438848921,
+   "f1/gratitude": 0.84472049689441,
+   "f1/grief": 0.10526315789473684,
+   "f1/joy": 0.2716627634660422,
+   "f1/love": 0.6502057613168725,
+   "f1/nervousness": 0.1477832512315271,
+   "f1/neutral": 0.5297777777777778,
+   "f1/optimism": 0.22660098522167488,
+   "f1/pride": 0.4,
+   "f1/realization": 0.23056300268096513,
+   "f1/relief": 0.38095238095238093,
+   "f1/remorse": 0.4177215189873418,
+   "f1/sadness": 0.4773413897280967,
+   "f1/surprise": 0.3575418994413408,
+   "micro_f1": 0.3865228511064161,
+   "macro_f1": 0.35287288798327265
+  }
+ },
+ "unfair_tos": {
+  "thresholds": {
+   "arbitration": 0.97,
+   "choice_of_law": 0.45,
+   "content_removal": 0.42,
+   "contract_by_using": 0.9,
+   "jurisdiction": 0.84,
+   "limitation_of_liability": 0.96,
+   "unilateral_change": 0.93,
+   "unilateral_termination": 0.48
+  },
+  "dev_examples": 1000,
+  "fixed": {
+   "f1/arbitration": 0.12244897959183673,
+   "f1/choice_of_law": 0.7878787878787878,
+   "f1/content_removal": 0.6842105263157895,
+   "f1/contract_by_using": 0.4339622641509434,
+   "f1/jurisdiction": 0.8888888888888888,
+   "f1/limitation_of_liability": 0.43902439024390244,
+   "f1/unilateral_change": 0.5230769230769231,
+   "f1/unilateral_termination": 0.7380952380952381,
+   "micro_f1": 0.49927431059506533,
+   "macro_f1": 0.5771982497802888
+  },
+  "tuned": {
+   "f1/arbitration": 0.5555555555555556,
+   "f1/choice_of_law": 0.7222222222222222,
+   "f1/content_removal": 0.6341463414634146,
+   "f1/contract_by_using": 0.7727272727272727,
+   "f1/jurisdiction": 0.9696969696969697,
+   "f1/limitation_of_liability": 0.7560975609756098,
+   "f1/unilateral_change": 0.7536231884057971,
+   "f1/unilateral_termination": 0.7441860465116279,
+   "micro_f1": 0.7481662591687042,
+   "macro_f1": 0.7385318946948087
+  }
+ },
+ "agb_de": {
+  "thresholds": {
+   "answer": 0.5
+  },
+  "dev_examples": 1000,
+  "fixed": {
+   "f1/answer": 0.20382165605095542
+  },
+  "tuned": {
+   "f1/answer": 0.20382165605095542
+  }
+ },
+ "toxic_chat": {
+  "thresholds": {
+   "jailbreak": 0.85,
+   "toxic": 0.42
+  },
+  "dev_examples": 1000,
+  "fixed": {
+   "f1/jailbreak": 0.7172995780590717,
+   "f1/toxic": 0.7862068965517242
+  },
+  "tuned": {
+   "f1/jailbreak": 0.8333333333333334,
+   "f1/toxic": 0.7932816537467701
+  }
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "task": "pubmedqa",
+ "n_examples": 1000,
+ "n_answered": 1000,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.787,
+  "ci95": [
+   0.762,
+   0.811525
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.787,
+   "ece": 0.12933000000000003,
+   "brier": 0.32619529999999997,
+   "mean_top_prob": 0.91505,
+   "mean_confidence": 0.8719199999999999,
+   "sel_acc@50": 0.936,
+   "sel_acc@80": 0.8675,
+   "aurc": 0.09542538887705447,
+   "macro_f1": 0.6492540954134355
+  }
+ },
+ "aggregate": {}
+}

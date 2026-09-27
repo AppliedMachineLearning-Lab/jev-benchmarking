@@ -1,0 +1,45 @@
+{
+ "task": "anli",
+ "n_examples": 3200,
+ "n_answered": 3200,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.739375,
+  "ci95": [
+   0.725,
+   0.7540625
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.739375,
+   "ece": 0.10163437500000005,
+   "brier": 0.3772636875,
+   "mean_top_prob": 0.8390156250000002,
+   "mean_confidence": 0.7573406250000001,
+   "sel_acc@50": 0.86875,
+   "sel_acc@80": 0.800390625,
+   "aurc": 0.12770310993838907,
+   "macro_f1": 0.7411054875036663
+  }
+ },
+ "aggregate": {},
+ "subsets": {
+  "r1": {
+   "n": 1000,
+   "primary": 0.814
+  },
+  "r2": {
+   "n": 1000,
+   "primary": 0.74
+  },
+  "r3": {
+   "n": 1200,
+   "primary": 0.6766666666666666
+  }
+ }
+}

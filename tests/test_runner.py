@@ -53,7 +53,7 @@ def test_resume_only_sends_missing(tmp_path):
     assert len(calls) == 10  # nothing paid twice
 
 
-def test_422_is_remembered_but_other_4xx_stay_retryable(tmp_path):
+def test_invalid_requests_are_remembered_but_other_4xx_stay_retryable(tmp_path):
     cache = ResponseCache(tmp_path / "c.db")
 
     def handler(request):
@@ -62,13 +62,15 @@ def test_422_is_remembered_but_other_4xx_stay_retryable(tmp_path):
             return httpx2.Response(422, json={"detail": "state too long"})
         if text == "t1":
             return httpx2.Response(400, json={"detail": "something odd"})
+        if text == "t2":
+            return httpx2.Response(400, json={"detail": {"error_type": "max_tokens_exceeded"}})
         return httpx2.Response(200, json=ok_body())
 
-    stats = run(cache, examples(4), handler)
-    assert (stats.sent, stats.permanent, stats.failed) == (2, 1, 1)
-    # Second pass: the 422 is not resent, the 400 is.
-    stats = run(cache, examples(4), handler)
-    assert (stats.cached, stats.permanent, stats.failed, stats.sent) == (2, 1, 1, 0)
+    stats = run(cache, examples(5), handler)
+    assert (stats.sent, stats.permanent, stats.failed) == (2, 2, 1)
+    # Second pass: the 422 and the over-long 400 are not resent, the generic 400 is.
+    stats = run(cache, examples(5), handler)
+    assert (stats.cached, stats.permanent, stats.failed, stats.sent) == (2, 2, 1, 0)
 
 
 @pytest.mark.parametrize("status", [401, 402, 403])

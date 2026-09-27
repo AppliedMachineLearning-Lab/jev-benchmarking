@@ -1,0 +1,27 @@
+{
+ "task": "sst5",
+ "n_examples": 2210,
+ "n_answered": 2210,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "argmax_accuracy",
+  "value": 0.579185520361991,
+  "ci95": [
+   0.5601809954751131,
+   0.5988800904977375
+  ]
+ },
+ "heads": {
+  "answer": {
+   "spearman": 0.8509534957164728,
+   "pearson": 0.8593522158144908,
+   "kendall": 0.7042332819102807,
+   "mae": 0.49774660633484163,
+   "argmax_accuracy": 0.579185520361991
+  }
+ },
+ "aggregate": {}
+}

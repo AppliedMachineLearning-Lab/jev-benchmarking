@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--dry-run", action="store_true", help="build requests and estimate cost, send nothing")
     p.add_argument("--show", type=int, default=0, metavar="N", help="print the first N requests per task")
     p.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
-    p.add_argument("--retry-errors", action="store_true", help="resend requests that previously failed with 413/422")
+    p.add_argument("--retry-errors", action="store_true", help="resend requests previously rejected as invalid (413/422, max_tokens_exceeded)")
     p.add_argument("--until-done", action="store_true", help="repeat passes until nothing is left or a pass makes no progress")
     p.add_argument("--max-passes", type=int, default=5)
     p.add_argument("--pause", type=float, default=120.0, help="seconds between passes (lets transient outages clear)")
@@ -124,7 +124,7 @@ def main() -> None:
                 if stats.sent or stats.failed or stats.skipped_budget or (n_pass == 1 and stats.permanent):
                     msg = f"- {task.name:<22} sent {stats.sent}, cached {stats.cached}, failed {stats.failed}"
                     if stats.permanent:
-                        msg += f", invalid (413/422, not resent) {stats.permanent}"
+                        msg += f", invalid (413/422/too long, not resent) {stats.permanent}"
                     if stats.skipped_budget:
                         msg += f", SKIPPED (cap) {stats.skipped_budget}"
                     if stats.errors:

@@ -71,6 +71,12 @@ FATAL_STATUSES = {401, 402, 403}
 # Only these mean "this exact request is invalid" (e.g. state over the context limit), so it is safe to
 # remember them and never resend. Anything else (e.g. a 400 for an empty balance) must stay retryable.
 PERMANENT_STATUSES = {413, 422}
+# The API reports an over-long request as a 400 with this error type (observed on jev-1.13.0).
+PERMANENT_ERROR_TYPES = ("max_tokens_exceeded",)
+
+
+def _is_permanent(status: int, message: str) -> bool:
+    return status in PERMANENT_STATUSES or (status == 400 and any(t in message for t in PERMANENT_ERROR_TYPES))
 CIRCUIT_BREAKER = 25  # consecutive failures before giving up on the run
 PROGRESS_EVERY = 60.0  # seconds between progress log lines
 
@@ -166,10 +172,10 @@ async def run_examples(
                         fatal.append(f"HTTP {status}: {str(e)[:300]}")
                         stop.set()
                         return
-                    if status in PERMANENT_STATUSES:
+                    if _is_permanent(status, str(e)):
                         cache.put_error(key, task_name, status, str(e))
                         stats.permanent += 1
-                        log.info("%s %s: HTTP %s (remembered, not resent) %s", task_name, ex.uid, status, str(e)[:200])
+                        log.info("%s %s: HTTP %s (invalid request, remembered, not resent) %s", task_name, ex.uid, status, str(e)[:200])
                     else:
                         fail(str(status), f"HTTP {status}: {e}")
                         log.warning("%s %s: HTTP %s %s", task_name, ex.uid, status, str(e)[:300])

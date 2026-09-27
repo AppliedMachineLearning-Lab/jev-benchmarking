@@ -1,0 +1,35 @@
+{
+ "task": "clinc150",
+ "n_examples": 5500,
+ "n_answered": 5500,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.8945454545454545,
+  "ci95": [
+   0.8854545454545455,
+   0.9019136363636364
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.8945454545454545,
+   "ece": 0.02494727272727275,
+   "brier": 0.1627508181818182,
+   "mean_top_prob": 0.90854,
+   "mean_confidence": 0.903,
+   "sel_acc@50": 0.9785454545454545,
+   "sel_acc@80": 0.9575,
+   "aurc": 0.03298471254569006,
+   "macro_f1": 0.9014653083730093
+  }
+ },
+ "aggregate": {
+  "in_scope_accuracy": 0.9208888888888889,
+  "oos_recall": 0.776,
+  "oos_precision": 0.9406060606060606
+ }
+}

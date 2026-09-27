@@ -1,0 +1,26 @@
+{
+ "task": "stsb",
+ "n_examples": 1379,
+ "n_answered": 1379,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "spearman",
+  "value": 0.8901624967354277,
+  "ci95": [
+   0.8785542284376012,
+   0.9009879103944283
+  ]
+ },
+ "heads": {
+  "answer": {
+   "spearman": 0.8901624967354277,
+   "pearson": 0.8902160161755597,
+   "kendall": 0.7192876484787555,
+   "mae": 0.5562726613488035
+  }
+ },
+ "aggregate": {}
+}

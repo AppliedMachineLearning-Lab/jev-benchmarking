@@ -1,0 +1,31 @@
+{
+ "task": "imdb",
+ "n_examples": 25000,
+ "n_answered": 25000,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.9652,
+  "ci95": [
+   0.962998,
+   0.967322
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9652,
+   "ece": 0.019387600000000088,
+   "brier": 0.05579588,
+   "mean_top_prob": 0.9843108,
+   "mean_confidence": 0.9684316000000001,
+   "sel_acc@50": 0.99264,
+   "sel_acc@80": 0.9932,
+   "aurc": 0.008426819843956752,
+   "macro_f1": 0.9651988453812126
+  }
+ },
+ "aggregate": {}
+}

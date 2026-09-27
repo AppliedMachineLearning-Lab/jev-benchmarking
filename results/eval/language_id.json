@@ -1,0 +1,31 @@
+{
+ "task": "language_id",
+ "n_examples": 10000,
+ "n_answered": 10000,
+ "models": [
+  "jev-1.13.0"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.9964,
+  "ci95": [
+   0.9952,
+   0.9974
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9964,
+   "ece": 0.003113999999999911,
+   "brier": 0.00611181,
+   "mean_top_prob": 0.9937,
+   "mean_confidence": 0.991928,
+   "sel_acc@50": 0.9996,
+   "sel_acc@80": 0.999375,
+   "aurc": 0.0007910569777450254,
+   "macro_f1": 0.9963988518594089
+  }
+ },
+ "aggregate": {}
+}

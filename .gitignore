@@ -229,3 +229,6 @@ scribbles/
 
 # local working notes for Claude Code, kept out of the repo
 CLAUDE.md
+
+# paper stuff (figures, tables, etc. -> will be tracked on overleaf)
+paper/

@@ -1,7 +1,9 @@
 # Dataset audit & benchmark list
 
-Status: draft, 2026-09-24. Source list: `benchmarks.txt`. All sizes/splits verified against the
-Hugging Face Hub + dataset-viewer APIs on 2026-09-24.
+Status: **final** (audit 2026-09-24, run completed 2026-09-27). Source list: `benchmarks.txt`. All
+sizes/splits verified against the Hugging Face Hub + dataset-viewer APIs on 2026-09-24. All 20 original
+datasets (with the fixes below) and all 18 proposed additions were run: 37 tasks in total, since SWAG
+was replaced by HellaSwag. Results: `results/eval/`; paper: `paper/` (not in git).
 
 ## What Jev constrains (from docs.typesafe.ai, jev-1.13)
 
@@ -14,7 +16,8 @@ Hugging Face Hub + dataset-viewer APIs on 2026-09-24.
 - Price: **$0.042 / 1M input tokens, output free**. Rate limit 250k tok/s, **1,200 req/min**
   (limits "adjusting dynamically").
 
-Consequence: cost is negligible (whole suite ≈ $10–30); the binding constraint is requests/minute.
+Consequence: cost is negligible (whole suite estimated ≈ $10–30, actual $9.15); the binding constraint is
+requests/minute.
 One request per example (state = example), all label questions fanned out inside that request.
 
 ## Audit of the original 20
@@ -22,7 +25,7 @@ One request per example (state = example), all label questions fanned out inside
 | # | Dataset | Eval split (n) | Primitive | Verdict | Notes / fixes |
 |---|---|---|---|---|---|
 | 1 | facebook/belebele | test, 122 langs × 900 = 109,800 | Choice (4) | ✅ keep | Passage→state. Biggest item (~1.5 h at rate limit, still ~$3). Could subset langs, but not needed for cost. `correct_answer_num` is 1-indexed. |
-| 2 | tasksource/bigbench | validation, 167 tasks, 201k rows | Choice | ⚠️ subset | Many tasks are generative or arithmetic (e.g. `arithmetic` 15k rows) = Jev's documented weak spots / not expressible. Keep only tasks with `multiple_choice_targets`, drop math/counting/code tasks, cap ~500/task. |
+| 2 | tasksource/bigbench | validation, 167 tasks, 201k rows | Choice | ⚠️ subset | Many tasks are generative or arithmetic (e.g. `arithmetic` 15k rows) = Jev's documented weak spots / not expressible. Keep only tasks with `multiple_choice_targets`, drop math/counting/code tasks, cap ~500/task. **Final:** 93 tasks, 13,228 rows (keyword-based exclusion + 3 date/number tasks; list in `jev_benchmarking/tasks/bigbench_mc_tasks.json`). |
 | 3 | google/boolq | validation (3,270) | Noul | ✅ keep | Test has no public labels; validation is standard. |
 | 4 | stanfordnlp/imdb | test (25,000) | Choice/Noul | ✅ keep | Long reviews, cheap anyway. Near ceiling for most models. |
 | 5 | facebook/anli | test r1–r3 (3,200) | Choice (3) | ✅ keep | Adversarial NLI; expect low absolute numbers (useful honest datapoint). CC-BY-NC. |
@@ -34,11 +37,11 @@ One request per example (state = example), all label questions fanned out inside
 | 11 | stanfordnlp/sst2 | ~~test~~ validation (872) | Choice/Noul | ⚠️ fix split | **Test labels are all `-1`.** Use validation (standard practice). |
 | 12 | dair-ai/emotion | test (2,000), config `split` | Choice (6) | ✅ keep | URL in list had `/viewer/split/test` suffix. Labels are hashtag-derived (noisy). |
 | 13 | mteb/banking77 | test (3,076) | Choice (77) | ✅ keep | Good fit for intent-routing story. |
-| 14 | Davlan/sib200 | test, 205 langs × 204 = 41,820 | Choice (7) | ✅ keep | Topic classification, very multilingual. |
+| 14 | Davlan/sib200 | test, 205 langs × 204 = 41,820 | Choice (7) | ✅ keep | Topic classification, very multilingual. **Final:** config `nqo_Nkoo.zip` is broken on the Hub and skipped (204 varieties). |
 | 15 | allenai/art (αNLI) | validation (1,532) | Choice (2) | ✅ keep | Test labels not released; validation is standard. |
-| 16 | toxigen/toxigen-data | `annotated` test (940) | Noul + Score | ✅ keep | `toxicity_human` is a 1–5 float → binarize for Noul (fix threshold up front) **and** evaluate as Score (Spearman). |
+| 16 | toxigen/toxigen-data | `annotated` test (940) | Noul + Score | ✅ keep | `toxicity_human` is a 1–5 float → binarize for Noul (fix threshold up front) **and** evaluate as Score (Spearman). **Final:** toxic = `toxicity_ai + toxicity_human > 5.5` (lm-evaluation-harness convention). |
 | 17 | ucirvine/sms_spam | train only (5,574) | Noul | ✅ keep (easy) | Only one split; use all as eval (zero-shot, so fine). 13% spam. Near ceiling. |
-| 18 | papluca/language-identification | test (10,000) | Choice (20) | 🟡 optional | Valid, but trivial for fastText (~99.5%) and not really a "judgment". Low paper value; cheap sanity check. |
+| 18 | papluca/language-identification | test (10,000) | Choice (20) | ✅ kept | Valid, but trivial for fastText (~99.5%) and not really a "judgment". Kept as a cheap sanity check (Jev: 99.6%). |
 | 19 | d4br4/agb-de | test (755) | Noul | ✅ keep | German T&C clause voidness; **37/755 positive** → report F1(pos)/AUPRC, not accuracy. |
 | 20 | mteb/AfriXNLI | test | Choice (3) | 🔁 replace | mteb copy is **binarized** (neutral dropped, 400/lang). Use masakhane/afrixnli (3-class, 18 langs × 600 = 10,800, Apache-2.0) to match IrokoBench published numbers. |
 
@@ -72,7 +75,7 @@ unless noted.
 | atrost/financial_phrasebank | test (970) | Choice (3) | Finance sentiment (parquet mirror; original repo is script-based). |
 | coastalcph/lex_glue (`unfair_tos`) | test (1,607) | Noul ×8 (fan-out) | Unfair ToS clauses, pairs with AGB-DE (en vs. de). |
 
-Optional, if time allows: nyu-mll/multi_nli (validation_matched 9,815), truthfulqa/truthful_qa MC1
+Optional, **not run**: nyu-mll/multi_nli (validation_matched 9,815), truthfulqa/truthful_qa MC1
 (817), coastalcph/lex_glue `ledgar` (100-way, 10k), mteb/amazon_massive_intent (multilingual intent),
 facebook/xnli, nguha/legalbench (subset).
 
@@ -81,14 +84,34 @@ Considered and rejected: ybisk/piqa, allenai/social_i_qa, allenai/scifact, takal
 (gated, overlapping with the moderation sets above); HaluEval (known artifacts; AggreFact covers it
 better); lukaemon/bbh (chain-of-thought / System-Two tasks; could serve as a "limits" appendix).
 
-## Budget estimate
+## Budget: estimate vs. actual
 
-~294k requests (original 20, fixed) + ~71k (additions) ≈ **365k requests**.
-At ~1–2k input tokens/request (large-label Choices like CLINC/banking77 carry long criteria):
-**≈ $15–30** for Jev, **≈ 5 h** wall-clock at 1,200 req/min.
-Belebele (110k) and SIB-200 (42k) are ~40% of all requests; subset languages if rate limits bite.
+Estimate (before the run): ~365k requests at ~1–2k input tokens each → **$15–30**, ~5 h at 1,200 req/min.
 
-## Methodology notes for the paper
+Actual:
+
+| Run | Requests | Input tokens | Cost |
+|---|---|---|---|
+| Dev pilot (20 per task) | 620 | 0.3M | $0.01 |
+| Full eval run (all 37 tasks, full eval splits) | 346,009 | 217.9M | $9.15 |
+| Threshold tuning (1,000 dev examples × 4 tasks) | 3,830 | 2.4M | $0.10 |
+| Memorization probes (MMLU/C-Eval calculation-heavy subjects) | 7,570 | 3.1M | $0.13 |
+| **Total** | 358,029 | 223.7M | **$9.40** |
+
+The eval run took 5 h 15 min at 1,100 req/min (client-side cap); 630 input tokens per request on average,
+0.36 s mean latency. One request (a BIG-bench item) exceeded the context limit (HTTP 400
+`max_tokens_exceeded`); all others were answered.
+
+## Additional analyses (beyond the suite)
+
+- **Per-question thresholds** for GoEmotions, UNFAIR-ToS, AGB-DE and ToxicChat: tuned for F1 on 1,000
+  dev examples, applied unchanged to the eval split (`jev_benchmarking/thresholds.py`,
+  `results/eval/thresholds.json`).
+- **Memorization probes** on the calculation-heavy MMLU subjects: options rotated, question withheld,
+  plus a C-Eval question-withheld control (`jev_benchmarking/tasks/probes.py`,
+  `results/eval/probes.json`).
+
+## Methodology notes for the paper (all implemented)
 
 - Freeze one question template per dataset **before** looking at test results; iterate only on
   train/dev splits. Log the exact request JSON and the returned `model` version (`jev-1.13.0`),

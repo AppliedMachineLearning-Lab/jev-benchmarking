@@ -21,7 +21,7 @@ import time
 from jev_benchmarking.cache import ResponseCache, request_key
 from jev_benchmarking.config import CACHE_DB, DEFAULT_RPM, MODEL, TOTAL_BUDGET_USD, USD_PER_INPUT_TOKEN
 from jev_benchmarking.runner import FatalAPIError, estimate_tokens, run_examples
-from jev_benchmarking.tasks import TASKS, get_tasks
+from jev_benchmarking.tasks import ALL_TASKS, PROBES, get_tasks
 
 
 def parse_args() -> argparse.Namespace:
@@ -47,9 +47,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     if args.list:
-        for t in TASKS.values():
+        for t in ALL_TASKS.values():
             splits = ", ".join(f"{k}={v}" for k, v in t.splits.items() if v)
-            print(f"{t.name:<22} {t.hf_path:<45} [{splits}]  {t.description}")
+            tag = "  (probe)" if t.name in PROBES else ""
+            print(f"{t.name:<26} {t.hf_path:<45} [{splits}]  {t.description}{tag}")
         return
     if not args.tasks:
         raise SystemExit("Name tasks to run (or 'all'); see --list.")

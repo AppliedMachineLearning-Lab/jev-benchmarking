@@ -3,7 +3,7 @@
 import pandas as pd
 
 from jev_benchmarking.cache import ResponseCache, request_key
-from jev_benchmarking.config import MODEL, ROOT
+from jev_benchmarking.config import MODEL, ROOT, model_slug
 from jev_benchmarking.tasks import ALL_TASKS
 
 RECORDS_DIR = ROOT / "cache" / "records"
@@ -40,15 +40,15 @@ def _row(task, e, head: str, ans: dict) -> dict:
 
 
 def build_records(
-    task_name: str, split: str = "eval", limit: int | None = None, cache: ResponseCache | None = None
+    task_name: str, split: str = "eval", limit: int | None = None, cache: ResponseCache | None = None, model: str = MODEL
 ) -> pd.DataFrame:
     task = ALL_TASKS[task_name]
-    cache = cache or ResponseCache()
+    cache = cache or ResponseCache(model=model)
     examples = task.examples(split, limit=limit)
-    responses = cache.get_many([request_key(MODEL, e.state, e.questions) for e in examples])
+    responses = cache.get_many([request_key(model, e.state, e.questions) for e in examples])
     rows = []
     for e in examples:
-        resp = responses.get(request_key(MODEL, e.state, e.questions))
+        resp = responses.get(request_key(model, e.state, e.questions))
         if resp is None:
             continue
         for head in task.heads:
@@ -56,11 +56,14 @@ def build_records(
     return pd.DataFrame(rows)
 
 
-def load_records(task_name: str, split: str = "eval", limit: int | None = None, refresh: bool = False) -> pd.DataFrame:
-    path = RECORDS_DIR / split / f"{task_name}{'' if limit is None else f'.limit{limit}'}.parquet"
+def load_records(
+    task_name: str, split: str = "eval", limit: int | None = None, refresh: bool = False, model: str = MODEL
+) -> pd.DataFrame:
+    base = RECORDS_DIR / split / model_slug(model) if model_slug(model) else RECORDS_DIR / split
+    path = base / f"{task_name}{'' if limit is None else f'.limit{limit}'}.parquet"
     if path.is_file() and not refresh:
         return pd.read_parquet(path)
-    df = build_records(task_name, split, limit)
+    df = build_records(task_name, split, limit, model=model)
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path, index=False)
     return df

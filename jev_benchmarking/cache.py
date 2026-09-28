@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from jev_benchmarking.config import CACHE_DB, USD_PER_INPUT_TOKEN
+from jev_benchmarking.config import MODEL, USD_PER_INPUT_TOKEN, cache_db_path
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS responses (
@@ -38,7 +38,9 @@ def request_key(model: str, state: Any, questions: dict) -> str:
 
 
 class ResponseCache:
-    def __init__(self, path: Path = CACHE_DB):
+    def __init__(self, path: Path | None = None, model: str = MODEL):
+        """Opens `path`, or else the database of `model` (see config.cache_db_path)."""
+        path = path or cache_db_path(model)
         path.parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(path, timeout=60)
         # WAL: every response is durable once committed, a killed run can't corrupt the file, and
@@ -94,15 +96,18 @@ class ResponseCache:
         self.db.commit()
 
     def spent_usd(self) -> float:
-        (tokens,) = self.db.execute("SELECT COALESCE(SUM(input_tokens), 0) FROM responses").fetchone()
+        """Spend on the TypeSafe API. Responses of other (local, open-weight) models cost nothing."""
+        (tokens,) = self.db.execute(
+            "SELECT COALESCE(SUM(input_tokens), 0) FROM responses WHERE model LIKE 'jev-%'"
+        ).fetchone()
         return tokens * USD_PER_INPUT_TOKEN
 
-    def usage_by_task(self, since: float = 0.0) -> list[tuple]:
+    def usage_by_task(self, since: float = 0.0, model_like: str = "jev-%") -> list[tuple]:
         """(task, requests, input tokens, estimated tokens, mean latency) for responses created at/after `since`."""
         return self.db.execute(
             """SELECT task, COUNT(*), SUM(input_tokens), SUM(est_tokens), AVG(latency_s)
-               FROM responses WHERE created_at >= ? GROUP BY task ORDER BY SUM(input_tokens) DESC""",
-            (since,),
+               FROM responses WHERE created_at >= ? AND model LIKE ? GROUP BY task ORDER BY SUM(input_tokens) DESC""",
+            (since, model_like),
         ).fetchall()
 
     def errors_by_task(self) -> list[tuple]:

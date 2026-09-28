@@ -41,7 +41,8 @@ python scripts/run.py probes                    # memorization probes (MMLU/C-Ev
   reported split. Freeze the question wording before running `eval`.
 - **Sampling:** `--limit N` takes a deterministic, hash-ordered sample spread evenly over configs
   (languages, subjects). Smaller samples are subsets of larger ones, so pilot answers are reused.
-- **Cache and ledger:** every response is stored in `cache/responses.db`, keyed by the exact
+- **Cache and ledger:** every Jev response is stored in `cache/responses.db` (other models: one database
+  each, `cache/responses.<org>__<model>.db`, gitignored), keyed by the exact
   request. Nothing is ever paid for twice, and `evaluate.py` never calls the API. The same table is
   the spend ledger.
 - **Spend guards:** `--max-cost` caps a run (default $0.02), and `JEV_TOTAL_BUDGET_USD`

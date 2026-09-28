@@ -37,7 +37,7 @@ One request per example (state = example), all label questions fanned out inside
 | 11 | stanfordnlp/sst2 | ~~test~~ validation (872) | Choice/Noul | ⚠️ fix split | **Test labels are all `-1`.** Use validation (standard practice). |
 | 12 | dair-ai/emotion | test (2,000), config `split` | Choice (6) | ✅ keep | URL in list had `/viewer/split/test` suffix. Labels are hashtag-derived (noisy). |
 | 13 | mteb/banking77 | test (3,076) | Choice (77) | ✅ keep | Good fit for intent-routing story. |
-| 14 | Davlan/sib200 | test, 205 langs × 204 = 41,820 | Choice (7) | ✅ keep | Topic classification, very multilingual. **Final:** config `nqo_Nkoo.zip` is broken on the Hub and skipped (204 varieties). |
+| 14 | Davlan/sib200 | test, 205 langs × 204 = 41,820 | Choice (7) | ✅ keep | Topic classification, very multilingual. **Final:** config entry `nqo_Nkoo.zip` is a broken duplicate of `nqo_Nkoo` and is skipped; all 205 varieties are evaluated. |
 | 15 | allenai/art (αNLI) | validation (1,532) | Choice (2) | ✅ keep | Test labels not released; validation is standard. |
 | 16 | toxigen/toxigen-data | `annotated` test (940) | Noul + Score | ✅ keep | `toxicity_human` is a 1–5 float → binarize for Noul (fix threshold up front) **and** evaluate as Score (Spearman). **Final:** toxic = `toxicity_ai + toxicity_human > 5.5` (lm-evaluation-harness convention). |
 | 17 | ucirvine/sms_spam | train only (5,574) | Noul | ✅ keep (easy) | Only one split; use all as eval (zero-shot, so fine). 13% spam. Near ceiling. |

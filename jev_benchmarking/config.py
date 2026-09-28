@@ -5,11 +5,24 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CACHE_DB = Path(os.environ.get("JEV_CACHE_DB", ROOT / "cache" / "responses.db"))
+CACHE_DB = Path(os.environ.get("JEV_CACHE_DB", ROOT / "cache" / "responses.db"))  # Jev responses
 RESULTS_DIR = ROOT / "results"
 
 # Pin the versioned model rather than `jev-latest`, so an alias move can't silently change results.
 MODEL = os.environ.get("JEV_MODEL", "jev-1.13.0")
+
+
+
+def model_slug(model: str) -> str:
+    """File/directory-safe model name; empty for the Jev model, which keeps the original locations."""
+    return "" if model == MODEL else model.replace("hf:", "").replace("/", "__")
+
+
+def cache_db_path(model: str) -> Path:
+    """One response database per model: Jev keeps `responses.db`, others get `responses.<org>__<name>.db`."""
+    slug = model_slug(model)
+    return CACHE_DB if not slug else CACHE_DB.parent / f"responses.{slug}.db"
+
 
 # https://docs.typesafe.ai/models: charged per input token, output tokens are free.
 USD_PER_INPUT_TOKEN = 0.042 / 1_000_000

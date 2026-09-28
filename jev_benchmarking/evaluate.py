@@ -60,8 +60,8 @@ def bootstrap_ci(task: Task, exs: list[Example], answers: list[dict], seed: int 
     return (float(np.percentile(vals, 2.5)), float(np.percentile(vals, 97.5)))
 
 
-def evaluate(task: Task, examples: list[Example], cache: ResponseCache, with_ci: bool = True) -> dict:
-    keys = [request_key(MODEL, e.state, e.questions) for e in examples]
+def evaluate(task: Task, examples: list[Example], cache: ResponseCache, with_ci: bool = True, model: str = MODEL) -> dict:
+    keys = [request_key(model, e.state, e.questions) for e in examples]
     responses = cache.get_many(keys)
     exs, answers, models = [], [], set()
     for e, k in zip(examples, keys):

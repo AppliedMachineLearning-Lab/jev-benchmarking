@@ -1,6 +1,8 @@
-# MTRL specific
+# project specific
 data/
 logs/
+# open-model JSONL outputs (imported into cache/responses.db)
+runs/
 models/
 cache/*
 deep-dive/

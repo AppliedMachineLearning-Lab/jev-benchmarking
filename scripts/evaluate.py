@@ -10,7 +10,7 @@ import json
 import math
 
 from jev_benchmarking.cache import ResponseCache
-from jev_benchmarking.config import RESULTS_DIR
+from jev_benchmarking.config import MODEL, RESULTS_DIR, model_slug
 from jev_benchmarking.evaluate import evaluate
 from jev_benchmarking.tasks import get_tasks
 
@@ -26,10 +26,11 @@ def main() -> None:
     p.add_argument("--limit", type=int, help="use the same value as for run.py to score that sample")
     p.add_argument("--subsets", nargs="+")
     p.add_argument("--no-ci", action="store_true", help="skip bootstrap confidence intervals")
+    p.add_argument("--model", default=MODEL, help="model whose cached responses to score (e.g. hf:google/gemma-4-E4B-it)")
     args = p.parse_args()
 
-    cache = ResponseCache()
-    out_dir = RESULTS_DIR / args.split
+    cache = ResponseCache(model=args.model)
+    out_dir = RESULTS_DIR / args.split / "models" / model_slug(args.model) if model_slug(args.model) else RESULTS_DIR / args.split
     out_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     for task in get_tasks(args.tasks):
@@ -40,7 +41,7 @@ def main() -> None:
         except Exception as e:
             print(f"- {task.name}: could not load ({type(e).__name__})")
             continue
-        res = evaluate(task, examples, cache, with_ci=not args.no_ci)
+        res = evaluate(task, examples, cache, with_ci=not args.no_ci, model=args.model)
         if task.skipped_configs:
             res["skipped_configs"] = task.skipped_configs
             print(f"  !! {task.name}: {len(task.skipped_configs)} config(s) skipped: {', '.join(task.skipped_configs)}")

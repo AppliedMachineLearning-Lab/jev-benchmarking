@@ -17,6 +17,7 @@
 #   JEV_MODEL  (default google/gemma-4-E4B-it)   JEV_TASKS (default "all"; several: joined with "+", since sbatch --export splits on commas)
 #   JEV_SPLIT  (default eval)                    JEV_LIMIT (default: none = full split)
 #   JEV_RUN    output subdirectory name           JEV_MAX_BATCH_TOKENS (default 32768)
+#   JEV_DEVICE (default cuda; "auto" splits a model that does not fit one GPU over all allocated GPUs)
 set -euo pipefail
 source "$HOME/${JEV_REMOTE_DIR:-jev-benchmarking}/scripts/marvin/common.sh"
 export HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1   # everything was prefetched on the login node
@@ -37,5 +38,5 @@ TASKS="${JEV_TASKS:-all}"
 "$JEV_VENV/bin/python" scripts/run_open_model.py ${TASKS//+/ } \
     --model "$MODEL" --split "$SPLIT" "${LIMIT_ARG[@]}" \
     --shard "$SHARD" --num-shards "$NSHARDS" \
-    --max-batch-tokens "${JEV_MAX_BATCH_TOKENS:-32768}" \
+    --max-batch-tokens "${JEV_MAX_BATCH_TOKENS:-32768}" --device "${JEV_DEVICE:-cuda}" \
     --out "$JEV_RUNS/$RUN"

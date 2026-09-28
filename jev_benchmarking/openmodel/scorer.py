@@ -20,9 +20,17 @@ class ScoreResult:
 
 class HFScorer:
     def __init__(self, model_id: str, device: str = "cuda", dtype: str = "bfloat16", max_batch_tokens: int = 32_768):
+        """device="auto" splits the layers over all visible GPUs (for models larger than one GPU)."""
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
-        self.model = AutoModelForCausalLM.from_pretrained(model_id, dtype=getattr(torch, dtype)).to(device).eval()
-        self.device = device
+        if device == "auto":
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, dtype=getattr(torch, dtype), device_map="auto").eval()
+            self.device = self.model.get_input_embeddings().weight.device  # inputs go where the embeddings live
+        elif device.startswith("cuda"):  # load straight onto the GPU (a 56 GB model would not fit in job RAM first)
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, dtype=getattr(torch, dtype), device_map=device).eval()
+            self.device = device
+        else:
+            self.model = AutoModelForCausalLM.from_pretrained(model_id, dtype=getattr(torch, dtype)).to(device).eval()
+            self.device = device
         self.max_batch_tokens = max_batch_tokens
         pad = self.tokenizer.pad_token_id
         self.pad_id = pad if pad is not None else self.tokenizer.eos_token_id
@@ -40,9 +48,10 @@ class HFScorer:
         return ids[0]
 
     def prompt_ids(self, user_text: str) -> list[int]:
-        """Chat-formatted prompt ending where the model's answer starts (no thinking, no prefill)."""
+        """Chat-formatted prompt ending where the model's answer starts. Thinking is switched off explicitly
+        (Gemma 4 defaults to off; Qwen 3.x defaults to on and then emits an empty <think></think> block)."""
         out = self.tokenizer.apply_chat_template(
-            [{"role": "user", "content": user_text}], tokenize=True, add_generation_prompt=True
+            [{"role": "user", "content": user_text}], tokenize=True, add_generation_prompt=True, enable_thinking=False
         )
         return list(out["input_ids"] if hasattr(out, "keys") else out)
 

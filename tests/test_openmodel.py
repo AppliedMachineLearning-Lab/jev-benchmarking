@@ -39,10 +39,19 @@ def test_to_answer_formats_match_jev():
 
 
 @pytest.mark.skipif(os.environ.get("JEV_TEST_OPENMODEL") != "1", reason="downloads a tiny model; set JEV_TEST_OPENMODEL=1")
-def test_batched_scoring_equals_single_prompt_scoring():
+@pytest.mark.parametrize(
+    "model_id",
+    [
+        "trl-internal-testing/tiny-Gemma4ForConditionalGeneration",
+        # Hybrid linear-attention (recurrent) + full-attention layers, like Qwen3.8-27B: left padding must not leak
+        # into the recurrent state.
+        "trl-internal-testing/tiny-Qwen3_5ForConditionalGeneration",
+    ],
+)
+def test_batched_scoring_equals_single_prompt_scoring(model_id):
     from jev_benchmarking.openmodel.scorer import HFScorer
 
-    scorer = HFScorer("trl-internal-testing/tiny-Gemma4ForConditionalGeneration", device="cpu", dtype="float32", max_batch_tokens=10_000)
+    scorer = HFScorer(model_id, device="cpu", dtype="float32", max_batch_tokens=10_000)
     texts = ["Short question?", "A much longer question " * 20, "Medium length question about something " * 3]
     prompts = [scorer.prompt_ids(t) for t in texts]
     codes = [["A", "B", "C"], ["Yes", "No"], ["0", "1", "2", "3"]]

@@ -14,7 +14,7 @@
 # already written to $JEV_RUNS/<run>/. Submit via scripts/marvin/submit.sh.
 #
 # Environment (set by submit.sh):
-#   JEV_MODEL  (default google/gemma-4-E4B-it)   JEV_TASKS (default "all")
+#   JEV_MODEL  (default google/gemma-4-E4B-it)   JEV_TASKS (default "all"; several: joined with "+", since sbatch --export splits on commas)
 #   JEV_SPLIT  (default eval)                    JEV_LIMIT (default: none = full split)
 #   JEV_RUN    output subdirectory name           JEV_MAX_BATCH_TOKENS (default 32768)
 set -euo pipefail
@@ -33,7 +33,8 @@ echo "=== job ${SLURM_JOB_ID:-?} shard $SHARD/$NSHARDS on $(hostname): $MODEL, t
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
 cd "$HOME/$JEV_REMOTE_DIR"
-"$JEV_VENV/bin/python" scripts/run_open_model.py ${JEV_TASKS:-all} \
+TASKS="${JEV_TASKS:-all}"
+"$JEV_VENV/bin/python" scripts/run_open_model.py ${TASKS//+/ } \
     --model "$MODEL" --split "$SPLIT" "${LIMIT_ARG[@]}" \
     --shard "$SHARD" --num-shards "$NSHARDS" \
     --max-batch-tokens "${JEV_MAX_BATCH_TOKENS:-32768}" \

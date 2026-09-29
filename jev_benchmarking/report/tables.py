@@ -205,3 +205,26 @@ def probes(rows: list[dict]) -> str:
         )
         prev = r["benchmark"]
     return _tabular("l l r c c", "Benchmark & Condition & $n$ & Acc.$\\uparrow$ & 95\\% CI", body)
+
+
+def comparison(results_by_model: dict[str, dict[str, dict]]) -> str:
+    """Primary metric (best in bold) and ECE of the first Choice/Noul question, per model."""
+    labels = list(results_by_model)
+    rows = defaultdict(list)
+    for cat, tasks in CATEGORIES.items():
+        for t in tasks:
+            prim = {m: results_by_model[m][t]["primary"] for m in labels}
+            metric = METRIC_LABELS.get(prim[labels[0]]["metric"], prim[labels[0]]["metric"])
+            if prim[labels[0]]["head"] not in ("answer", "*"):
+                metric += f" ({prim[labels[0]]['head']})"
+            best = max(p["value"] for p in prim.values())
+            scores = [f"\\textbf{{{_f(prim[m]['value'])}}}" if prim[m]["value"] == best else _f(prim[m]["value"]) for m in labels]
+            eces = [_f(next((h["ece"] for h in results_by_model[m][t]["heads"].values() if "ece" in h), None)) for m in labels]
+            rows[cat].append(" & ".join([META[t].name, metric, *scores, *eces]))
+    n = len(labels)
+    header = (
+        f"& & \\multicolumn{{{n}}}{{c}}{{Score$\\uparrow$}} & \\multicolumn{{{n}}}{{c}}{{ECE$\\downarrow$}} \\\\\n"
+        f"    \\cmidrule(lr){{3-{2 + n}}} \\cmidrule(lr){{{3 + n}-{2 + 2 * n}}}\n"
+        f"    Dataset & Metric & {' & '.join(labels)} & {' & '.join(labels)}"
+    )
+    return _tabular("l l " + "c " * (2 * n), header, _grouped(2 + 2 * n, rows))

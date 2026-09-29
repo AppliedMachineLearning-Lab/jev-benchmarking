@@ -169,3 +169,73 @@ def subjects(records: dict[str, pd.DataFrame]) -> ggplot:
         + labs(x="", y="Per-subject accuracy")
         + _theme()
     )
+
+
+def _reliability_panels(records: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    from jev_benchmarking.tasks import TASKS
+
+    groups = {"Choice": [], "Noul, single question": [], "Noul, multi-label fan-out": []}
+    for t, d in records.items():
+        groups["Choice"].append(d[d["kind"] == "choice"])
+        groups["Noul, multi-label fan-out" if TASKS[t].multilabel else "Noul, single question"].append(d[d["kind"] == "binary"])
+    parts = []
+    for label, frames in groups.items():
+        df = pd.concat(frames)
+        hit = df["correct"] if label == "Choice" else df["gold_num"]
+        b = _bins(df["prob"].to_numpy(), hit.to_numpy())
+        b["panel"] = label
+        parts.append(b)
+    return pd.concat(parts)
+
+
+def reliability_models(records_by_model: dict[str, dict[str, pd.DataFrame]]) -> ggplot:
+    """Pooled reliability diagrams per model (same panels as `reliability`), one colour per model."""
+    df = pd.concat([_reliability_panels(recs).assign(model=m) for m, recs in records_by_model.items()])
+    df["panel"] = pd.Categorical(df["panel"], categories=["Choice", "Noul, single question", "Noul, multi-label fan-out"])
+    df["model"] = pd.Categorical(df["model"], categories=list(records_by_model))
+    return (
+        ggplot(df, aes("conf", "acc", color="model"))
+        + geom_abline(slope=1, intercept=0, linetype="dashed", color=BRIGHT[6])
+        + geom_line()
+        + geom_point(aes(size="n"), fill="white", stroke=0.7)
+        + facet_wrap("~panel")
+        + scale_color_manual(values=BRIGHT[: len(records_by_model)])
+        + scale_size_area(max_size=4, guide=None)
+        + scale_x_continuous(limits=(0, 1), breaks=[0, 0.5, 1])
+        + scale_y_continuous(limits=(0, 1), breaks=[0, 0.25, 0.5, 0.75, 1])
+        + coord_equal()
+        + labs(x="Predicted probability", y="Observed accuracy / frequency", color="")
+        + _theme()
+        + theme(legend_position="bottom", legend_title=element_blank())
+    )
+
+
+COMPARE_SELECTIVE_TASKS = ("banking77", "anli", "mmlu", "belebele")
+
+
+def selective_models(records_by_model: dict[str, dict[str, pd.DataFrame]], tasks=COMPARE_SELECTIVE_TASKS) -> ggplot:
+    """Accuracy vs. coverage (ranked by each model's own confidence), one panel per dataset."""
+    rows = []
+    for m, recs in records_by_model.items():
+        for t in tasks:
+            d = recs[t]
+            d = d[d["head"] == "answer"]
+            correct = d["correct"].to_numpy()[np.argsort(-d["confidence"].to_numpy(), kind="stable")]
+            n = len(correct)
+            keep = np.unique(np.linspace(max(0, int(0.05 * n) - 1), n - 1, 60).astype(int))
+            acc = np.cumsum(correct) / np.arange(1, n + 1)
+            rows.append(pd.DataFrame({"model": m, "task": META[t].name, "coverage": (keep + 1) / n, "accuracy": acc[keep]}))
+    df = pd.concat(rows)
+    df["model"] = pd.Categorical(df["model"], categories=list(records_by_model))
+    df["task"] = pd.Categorical(df["task"], categories=[META[t].name for t in tasks])
+    return (
+        ggplot(df, aes("coverage", "accuracy", color="model"))
+        + geom_line(size=0.9)
+        + facet_wrap("~task", nrow=1)
+        + scale_color_manual(values=BRIGHT[: len(records_by_model)])
+        + scale_x_continuous(breaks=[0.25, 0.5, 0.75, 1], labels=lambda v: [f"{x:.0%}" for x in v])
+        + scale_y_continuous(labels=lambda v: [f"{x:.0%}" for x in v])
+        + labs(x="Coverage (most confident fraction answered)", y="Accuracy", color="")
+        + _theme()
+        + theme(legend_position="bottom", legend_title=element_blank())
+    )

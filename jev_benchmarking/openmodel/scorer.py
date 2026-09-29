@@ -4,6 +4,8 @@ For each prompt we need log P(code | prompt) for a handful of single-token answe
 per prompt gives the full next-token distribution at the last position; we keep only the log-probabilities
 of the codes. Prompts are left-padded and packed into batches under a token budget; the output layer is
 evaluated at the last position only (`logits_to_keep=1`), which keeps memory flat despite a 262k vocabulary.
+A prompt longer than the budget is processed alone, in consecutive chunks that carry the model's cache
+(chunked prefill): the same computation as one pass, with memory bounded by the chunk size.
 """
 
 from dataclasses import dataclass
@@ -62,6 +64,9 @@ class HFScorer:
         order = sorted(range(len(prompts)), key=lambda i: len(prompts[i]), reverse=True)
         batch: list[int] = []
         for i in order:
+            if len(prompts[i]) > self.max_batch_tokens:
+                self._run_long(i, prompts, codes, results)
+                continue
             longest = len(prompts[batch[0]]) if batch else len(prompts[i])
             if batch and longest * (len(batch) + 1) > self.max_batch_tokens:
                 self._run(batch, prompts, codes, results)
@@ -90,3 +95,20 @@ class HFScorer:
         for row, i in enumerate(batch):
             cid = torch.tensor([self.code_id(c) for c in codes[i]])
             results[i] = ScoreResult(logprobs[row, cid].tolist(), len(prompts[i]))
+
+    def _run_long(self, i, prompts, codes, results) -> None:
+        """Chunked prefill of a single prompt (batch size 1, so no padding): feed chunks of at most
+        max_batch_tokens tokens, passing the cache along; read the distribution after the last chunk."""
+        ids = torch.tensor([prompts[i]], dtype=torch.long)
+        cache, out = None, None
+        for start in range(0, ids.shape[1], self.max_batch_tokens):
+            out = self.model(
+                input_ids=ids[:, start : start + self.max_batch_tokens].to(self.device),
+                past_key_values=cache,
+                use_cache=True,
+                logits_to_keep=1,
+            )
+            cache = out.past_key_values
+        logprobs = torch.log_softmax(out.logits[:, -1, :].float(), dim=-1).cpu()
+        cid = torch.tensor([self.code_id(c) for c in codes[i]])
+        results[i] = ScoreResult(logprobs[0, cid].tolist(), len(prompts[i]))

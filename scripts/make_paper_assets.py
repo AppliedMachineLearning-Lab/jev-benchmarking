@@ -14,6 +14,7 @@ from jev_benchmarking import thresholds as thr
 from jev_benchmarking.config import RESULTS_DIR, ROOT
 from jev_benchmarking.report import figures, tables
 from jev_benchmarking.report.meta import QUANTITATIVE_SUBJECTS
+from jev_benchmarking.report.models import PAPER_MODELS, available_models
 from jev_benchmarking.report.records import load_records
 from jev_benchmarking.tasks import ALL_TASKS, TASKS
 
@@ -57,6 +58,14 @@ def main() -> None:
         "multilingual": (figures.multilingual(records), 4.2, 4.6),
         "subjects": (figures.subjects(records), 6.0, 3.0),
     }
+    # Model comparison (only models with complete results; Jev plus the open models run so far).
+    compared = available_models("eval")
+    if len(compared) >= 2:
+        (PAPER / "tables" / "comparison.tex").write_text(tables.comparison(compared))
+        print(f"tables/comparison.tex ({', '.join(compared)})")
+        recs = {m: records if m == "Jev" else {t: load_records(t, "eval", refresh=args.refresh_records, model=PAPER_MODELS[m]) for t in TASKS} for m in compared}
+        plots["reliability_models"] = (figures.reliability_models(recs), 6.5, 3.3)
+        plots["selective_models"] = (figures.selective_models(recs), 6.5, 2.6)
     for name, (plot, w, h) in plots.items():
         plot.save(PAPER / "figures" / f"{name}.pdf", width=w, height=h, verbose=False)
         print(f"figures/{name}.pdf")

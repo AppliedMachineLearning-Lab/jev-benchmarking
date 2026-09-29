@@ -21,6 +21,7 @@
 set -euo pipefail
 source "$HOME/${JEV_REMOTE_DIR:-jev-benchmarking}/scripts/marvin/common.sh"
 export HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1   # everything was prefetched on the login node
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True   # less fragmentation with varying batch shapes
 
 MODEL="${JEV_MODEL:-google/gemma-4-E4B-it}"
 SPLIT="${JEV_SPLIT:-eval}"

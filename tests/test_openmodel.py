@@ -86,3 +86,20 @@ def test_each_model_gets_its_own_database(tmp_path):
     jsonl.write_text(json.dumps(row) + "\n")
     r = subprocess.run([sys.executable, "scripts/import_responses.py", str(jsonl)], env=env, capture_output=True, text=True)
     assert r.returncode != 0 and "refusing" in r.stderr
+
+
+@pytest.mark.skipif(os.environ.get("JEV_TEST_OPENMODEL") != "1", reason="downloads a tiny model; set JEV_TEST_OPENMODEL=1")
+def test_chunked_prefill_equals_single_pass():
+    """Prompts longer than the token budget are scored in chunks carrying the (hybrid) cache; the result must
+    equal scoring the whole prompt in one pass."""
+    from jev_benchmarking.openmodel.scorer import HFScorer
+
+    model_id = "trl-internal-testing/tiny-Qwen3_5ForConditionalGeneration"
+    one_pass = HFScorer(model_id, device="cpu", dtype="float32", max_batch_tokens=100_000)
+    chunked = HFScorer(model_id, device="cpu", dtype="float32", max_batch_tokens=64)
+    texts = ["A long document " * 90, "Short?", "Another fairly long passage about something else " * 12]
+    prompts = [one_pass.prompt_ids(t) for t in texts]
+    assert len(prompts[0]) > 3 * 64 and len(prompts[2]) > 64 and len(prompts[1]) < 64  # long prompts span several chunks
+    codes = [["A", "B"], ["Yes", "No"], ["0", "1", "2"]]
+    for a, b in zip(one_pass.score(prompts, codes), chunked.score(prompts, codes)):
+        assert a.logprobs == pytest.approx(b.logprobs, abs=1e-4)

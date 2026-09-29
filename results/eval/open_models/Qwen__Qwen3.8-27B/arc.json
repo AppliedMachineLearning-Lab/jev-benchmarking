@@ -1,0 +1,40 @@
+{
+ "task": "arc",
+ "n_examples": 3548,
+ "n_answered": 3548,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.9802705749718151,
+  "ci95": [
+   0.9754791431792559,
+   0.9844983089064262
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9802705749718151,
+   "ece": 0.006960305171404102,
+   "brier": 0.030669299227127765,
+   "mean_top_prob": 0.9744786369471155,
+   "mean_confidence": 0.9659702557784446,
+   "sel_acc@50": 1.0,
+   "sel_acc@80": 0.9982381959126145,
+   "aurc": 0.0013779288056918666
+  }
+ },
+ "aggregate": {},
+ "subsets": {
+  "ARC-Challenge": {
+   "n": 1172,
+   "primary": 0.9633105802047781
+  },
+  "ARC-Easy": {
+   "n": 2376,
+   "primary": 0.9886363636363636
+  }
+ }
+}

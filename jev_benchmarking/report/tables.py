@@ -85,25 +85,25 @@ def main_results(results: dict[str, dict]) -> str:
     return _tabular("l r l c c c", "Dataset & $n$ & Metric & Score$\\uparrow$ & 95\\% CI & ECE$\\downarrow$", _grouped(6, rows))
 
 
-def score_heads(results: dict[str, dict]) -> str:
-    """Per-dimension correlations for everything answered with the Score primitive."""
-    names = {"answer": ""}
+def score_heads(results_by_model: dict[str, dict[str, dict]]) -> str:
+    """Spearman correlation per Score dimension and model (summary-level for SummEval), plus Jev's MAE."""
+    labels = list(results_by_model)
+    first = results_by_model[labels[0]]
     body, shade = [], False
     for t in ("stsb", "sst5", "toxigen", "summeval", "helpsteer2"):
-        heads = {h: m for h, m in results[t]["heads"].items() if "spearman" in m}
-        first = True
-        for h, m in heads.items():
-            dim = names.get(h, h.capitalize())
-            group = _f(m.get("group_spearman")) if "group_spearman" in m else "--"
-            ds = META[t].name if first else ""
-            body.append(f"{SHADE if shade else ''}{ds} & {dim or '--'} & {_f(m['spearman'])} & {_f(m['kendall'])} & {group} & {_f(m['mae'], 2)} \\\\")
-            first = False
+        heads = [h for h, m in first[t]["heads"].items() if "spearman" in m]
+        for k, h in enumerate(heads):
+            metric = "group_spearman" if t == "summeval" else "spearman"
+            vals = [results_by_model[m][t]["heads"][h][metric] for m in labels]
+            best = max(vals)
+            cells = " & ".join(f"\\textbf{{{_f(v)}}}" if v == best else _f(v) for v in vals)
+            dim = "--" if h == "answer" else h.capitalize()
+            ds = META[t].name if k == 0 else ""
+            body.append(f"{SHADE if shade else ''}{ds} & {dim} & {cells} & {_f(first[t]['heads'][h]['mae'], 2)} \\\\")
         shade = not shade
-    return _tabular(
-        "l l c c c c",
-        "Dataset & Dimension & $\\rho\\uparrow$ & $\\tau\\uparrow$ & $\\rho_{\\text{summary}}\\uparrow$ & MAE$\\downarrow$",
-        body,
-    )
+    header = (f"& & \\multicolumn{{{len(labels)}}}{{c}}{{Spearman $\\rho\\uparrow$}} & \\\\\n"
+              f"    \\cmidrule(lr){{3-{2 + len(labels)}}}\n    Dataset & Dimension & {' & '.join(labels)} & MAE$\\downarrow$ ({labels[0]})")
+    return _tabular("l l " + "c " * len(labels) + "c", header, body)
 
 
 def calibration(records: dict[str, pd.DataFrame]) -> str:
@@ -179,32 +179,38 @@ THRESHOLD_ROWS = [
 ]
 
 
-def thresholds(summary: dict[str, dict]) -> str:
-    """Fixed 0.5 vs. per-question thresholds tuned on a training/validation sample."""
+def thresholds(summary: dict[str, dict[str, dict]]) -> str:
+    """Fixed 0.5 vs. per-question thresholds tuned on a training/validation sample, per model."""
+    labels = list(summary)
     body, prev, shade = [], None, True
     for t, key, label in THRESHOLD_ROWS:
         if t != prev:
             shade = not shade
-        fixed, tuned = summary[t]["fixed"][key], summary[t]["tuned"][key]
+        cells = []
+        for m in labels:
+            fixed, tuned = summary[m][t]["fixed"][key], summary[m][t]["tuned"][key]
+            cells += [_f(fixed), _f(tuned)]
         name = META[t].name if t != prev else ""
-        body.append(f"{SHADE if shade else ''}{name} & {label} & {_f(fixed)} & {_f(tuned)} & {tuned - fixed:+.3f} \\\\")
+        body.append(f"{SHADE if shade else ''}{name} & {label} & {' & '.join(cells)} \\\\")
         prev = t
-    return _tabular("l l c c c", "Dataset & Metric & Fixed 0.5 & Tuned & $\\Delta$", body)
+    groups = " & ".join(f"\\multicolumn{{2}}{{c}}{{{m}}}" for m in labels)
+    rules = " ".join(f"\\cmidrule(lr){{{3 + 2 * i}-{4 + 2 * i}}}" for i in range(len(labels)))
+    header = f"& & {groups} \\\\\n    {rules}\n    Dataset & Metric & " + " & ".join(["0.5", "tuned"] * len(labels))
+    return _tabular("l l " + "c " * (2 * len(labels)), header, body)
 
 
-def probes(rows: list[dict]) -> str:
-    """Contamination probe on calculation-heavy subjects: accuracy per condition with bootstrap CI."""
+def probes(rows: list[dict], labels: list[str]) -> str:
+    """Calculation-heavy vs. other subjects and the two memorization probes; one accuracy column per model.
+    rows: {"benchmark", "condition", "n", "acc": {label: accuracy}}."""
     body, prev, shade = [], None, True
     for r in rows:
         if r["benchmark"] != prev:
             shade = not shade
-        lo, hi = _boot_ci(r["correct"])
         name = r["benchmark"] if r["benchmark"] != prev else ""
-        body.append(
-            f"{SHADE if shade else ''}{name} & {r['condition']} & {_int(len(r['correct']))} & {_f(float(sum(r['correct']) / len(r['correct'])))} & [{_f(lo)}, {_f(hi)}] \\\\"
-        )
+        cells = " & ".join(_f(r["acc"][m]) for m in labels)
+        body.append(f"{SHADE if shade else ''}{name} & {r['condition']} & {_int(r['n'])} & {cells} \\\\")
         prev = r["benchmark"]
-    return _tabular("l l r c c", "Benchmark & Condition & $n$ & Acc.$\\uparrow$ & 95\\% CI", body)
+    return _tabular("l l r " + "c " * len(labels), "Benchmark & Subjects / condition & $n$ & " + " & ".join(labels), body)
 
 
 def comparison(results_by_model: dict[str, dict[str, dict]]) -> str:

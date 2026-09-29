@@ -10,8 +10,9 @@ import json
 import math
 
 from jev_benchmarking.cache import ResponseCache
-from jev_benchmarking.config import MODEL, RESULTS_DIR, model_slug
+from jev_benchmarking.config import MODEL
 from jev_benchmarking.evaluate import evaluate
+from jev_benchmarking.report.models import results_dir
 from jev_benchmarking.tasks import get_tasks
 
 
@@ -30,7 +31,7 @@ def main() -> None:
     args = p.parse_args()
 
     cache = ResponseCache(model=args.model)
-    out_dir = RESULTS_DIR / args.split / "models" / model_slug(args.model) if model_slug(args.model) else RESULTS_DIR / args.split
+    out_dir = results_dir(args.model, args.split)
     out_dir.mkdir(parents=True, exist_ok=True)
     rows = []
     for task in get_tasks(args.tasks):

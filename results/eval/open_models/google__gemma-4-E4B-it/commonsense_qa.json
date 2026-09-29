@@ -1,0 +1,31 @@
+{
+ "task": "commonsense_qa",
+ "n_examples": 1221,
+ "n_answered": 1221,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.7485667485667485,
+  "ci95": [
+   0.7235667485667486,
+   0.7723177723177723
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.7485667485667485,
+   "ece": 0.193843827580942,
+   "brier": 0.4282851962113496,
+   "mean_top_prob": 0.9424105761476905,
+   "mean_confidence": 0.9280132201846132,
+   "sel_acc@50": 0.9131147540983606,
+   "sel_acc@80": 0.8259979529170931,
+   "aurc": 0.1041994804263236,
+   "macro_f1": 0.7476797839294562
+  }
+ },
+ "aggregate": {}
+}

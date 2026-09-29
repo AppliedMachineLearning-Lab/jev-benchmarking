@@ -1,0 +1,31 @@
+{
+ "task": "language_id",
+ "n_examples": 10000,
+ "n_answered": 10000,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.9865,
+  "ci95": [
+   0.9841,
+   0.9885525000000001
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9865,
+   "ece": 0.011563120244764621,
+   "brier": 0.024707396818983814,
+   "mean_top_prob": 0.9980631202447645,
+   "mean_confidence": 0.9979611792050153,
+   "sel_acc@50": 0.9996,
+   "sel_acc@80": 0.998875,
+   "aurc": 0.0007517474343157525,
+   "macro_f1": 0.9865070403359939
+  }
+ },
+ "aggregate": {}
+}

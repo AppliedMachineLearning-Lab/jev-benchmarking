@@ -1,0 +1,27 @@
+{
+ "task": "sst5",
+ "n_examples": 2210,
+ "n_answered": 2210,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "argmax_accuracy",
+  "value": 0.5746606334841629,
+  "ci95": [
+   0.5524886877828055,
+   0.592997737556561
+  ]
+ },
+ "heads": {
+  "answer": {
+   "spearman": 0.8573509247871057,
+   "pearson": 0.8654033445646755,
+   "kendall": 0.7097739070257075,
+   "mae": 0.4964979289094306,
+   "argmax_accuracy": 0.5746606334841629
+  }
+ },
+ "aggregate": {}
+}

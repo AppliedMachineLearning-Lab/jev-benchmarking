@@ -1,0 +1,35 @@
+{
+ "task": "clinc150",
+ "n_examples": 5500,
+ "n_answered": 5500,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.6834545454545454,
+  "ci95": [
+   0.672,
+   0.6959136363636363
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.6834545454545454,
+   "ece": 0.24262409312032798,
+   "brier": 0.5449586507699478,
+   "mean_top_prob": 0.9260786385748733,
+   "mean_confidence": 0.9255858294987058,
+   "sel_acc@50": 0.9076363636363637,
+   "sel_acc@80": 0.7911363636363636,
+   "aurc": 0.12493998599758423,
+   "macro_f1": 0.7380330726232959
+  }
+ },
+ "aggregate": {
+  "in_scope_accuracy": 0.8111111111111111,
+  "oos_recall": 0.109,
+  "oos_precision": 0.923728813559322
+ }
+}

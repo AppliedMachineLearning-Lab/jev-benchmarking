@@ -1,0 +1,32 @@
+{
+ "task": "prompt_injections",
+ "n_examples": 116,
+ "n_answered": 116,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.6637931034482759,
+  "ci95": [
+   0.5775862068965517,
+   0.7586206896551724
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.6637931034482759,
+   "balanced_accuracy": 0.675,
+   "f1": 0.5185185185185185,
+   "precision": 1.0,
+   "recall": 0.35,
+   "auroc": 0.96875,
+   "auprc": 0.9749186913695027,
+   "ece": 0.32217501734265186,
+   "brier": 0.30354241479663757,
+   "positive_rate": 0.5172413793103449
+  }
+ },
+ "aggregate": {}
+}

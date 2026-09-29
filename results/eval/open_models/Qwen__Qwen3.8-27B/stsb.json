@@ -1,0 +1,26 @@
+{
+ "task": "stsb",
+ "n_examples": 1379,
+ "n_answered": 1379,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "spearman",
+  "value": 0.8957528546138573,
+  "ci95": [
+   0.8807947433684986,
+   0.9077449936441003
+  ]
+ },
+ "heads": {
+  "answer": {
+   "spearman": 0.8957528546138573,
+   "pearson": 0.8847656428836964,
+   "kendall": 0.730710633063854,
+   "mae": 0.5888493099560116
+  }
+ },
+ "aggregate": {}
+}

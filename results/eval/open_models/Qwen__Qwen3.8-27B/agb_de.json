@@ -1,0 +1,32 @@
+{
+ "task": "agb_de",
+ "n_examples": 755,
+ "n_answered": 755,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "f1",
+  "value": 0.0,
+  "ci95": [
+   0.0,
+   0.0
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9496688741721855,
+   "balanced_accuracy": 0.49930362116991645,
+   "f1": 0.0,
+   "precision": 0.0,
+   "recall": 0.0,
+   "auroc": 0.7598622299179403,
+   "auprc": 0.15131466170797692,
+   "ece": 0.06997383307455751,
+   "brier": 0.05030916918947352,
+   "positive_rate": 0.04900662251655629
+  }
+ },
+ "aggregate": {}
+}

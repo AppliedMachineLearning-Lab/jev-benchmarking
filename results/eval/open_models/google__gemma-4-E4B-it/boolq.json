@@ -1,0 +1,32 @@
+{
+ "task": "boolq",
+ "n_examples": 3270,
+ "n_answered": 3270,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.8223241590214068,
+  "ci95": [
+   0.808256880733945,
+   0.8339449541284404
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.8223241590214068,
+   "balanced_accuracy": 0.842705902328635,
+   "f1": 0.8415598581947096,
+   "precision": 0.9443084455324358,
+   "recall": 0.7589768814559764,
+   "auroc": 0.9240450910820294,
+   "auprc": 0.9537878266693673,
+   "ece": 0.16237167001712832,
+   "brier": 0.16357181590607356,
+   "positive_rate": 0.6217125382262997
+  }
+ },
+ "aggregate": {}
+}

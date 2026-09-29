@@ -1,0 +1,38 @@
+{
+ "task": "toxigen",
+ "n_examples": 940,
+ "n_answered": 940,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "toxic",
+  "metric": "accuracy",
+  "value": 0.8063829787234043,
+  "ci95": [
+   0.7808510638297872,
+   0.831409574468085
+  ]
+ },
+ "heads": {
+  "toxic": {
+   "accuracy": 0.8063829787234043,
+   "balanced_accuracy": 0.7944595118171252,
+   "f1": 0.7592592592592593,
+   "precision": 0.82,
+   "recall": 0.7068965517241379,
+   "auroc": 0.8898544307300604,
+   "auprc": 0.8678523971582572,
+   "ece": 0.15534200359443595,
+   "brier": 0.165738049342897,
+   "positive_rate": 0.4319148936170213
+  },
+  "toxicity": {
+   "spearman": 0.7797585129016745,
+   "pearson": 0.7668787846996317,
+   "kendall": 0.6064882528568072,
+   "mae": 0.6699394878798463
+  }
+ },
+ "aggregate": {}
+}

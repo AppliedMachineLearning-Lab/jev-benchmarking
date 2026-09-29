@@ -5,16 +5,18 @@ import json
 from jev_benchmarking.config import MODEL, RESULTS_DIR, model_slug
 from jev_benchmarking.tasks import TASKS
 
-PAPER_MODELS: dict[str, str] = {
+PAPER_MODELS: dict[str, str] = {  # order = column/colour order in tables and figures
     "Jev": MODEL,
-    "Gemma-4-E4B": "hf:google/gemma-4-E4B-it",
     "Qwen3.8-27B": "hf:Qwen/Qwen3.8-27B",
+    "Gemma-4-E4B": "hf:google/gemma-4-E4B-it",
 }
 
 
 def results_dir(model: str, split: str = "eval"):
+    """Jev: results/<split>/; other models: results/<split>/open_models/<org>__<name>/ (a folder named
+    `models/` would be caught by a .gitignore rule)."""
     slug = model_slug(model)
-    return RESULTS_DIR / split / "models" / slug if slug else RESULTS_DIR / split
+    return RESULTS_DIR / split / "open_models" / slug if slug else RESULTS_DIR / split
 
 
 def load_model_results(model: str, split: str = "eval") -> dict[str, dict]:

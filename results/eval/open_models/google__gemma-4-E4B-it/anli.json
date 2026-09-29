@@ -1,0 +1,45 @@
+{
+ "task": "anli",
+ "n_examples": 3200,
+ "n_answered": 3200,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.539375,
+  "ci95": [
+   0.521234375,
+   0.5553125
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.539375,
+   "ece": 0.41664307505543563,
+   "brier": 0.861164227429799,
+   "mean_top_prob": 0.9553708588766929,
+   "mean_confidence": 0.9330562883150393,
+   "sel_acc@50": 0.6325,
+   "sel_acc@80": 0.56953125,
+   "aurc": 0.37374610139610914,
+   "macro_f1": 0.5275131950357792
+  }
+ },
+ "aggregate": {},
+ "subsets": {
+  "r1": {
+   "n": 1000,
+   "primary": 0.629
+  },
+  "r2": {
+   "n": 1000,
+   "primary": 0.514
+  },
+  "r3": {
+   "n": 1200,
+   "primary": 0.48583333333333334
+  }
+ }
+}

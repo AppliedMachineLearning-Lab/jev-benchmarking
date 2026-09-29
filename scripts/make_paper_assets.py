@@ -38,19 +38,24 @@ def main() -> None:
     if missing:
         raise SystemExit(f"results/eval is missing {sorted(missing)}; run scripts/evaluate.py first")
     records = {t: load_records(t, "eval", refresh=args.refresh_records) for t in TASKS}
+    compared = available_models("eval")  # Jev plus every open model with complete results
+    recs = {m: records if m == "Jev" else {t: load_records(t, "eval", refresh=args.refresh_records, model=PAPER_MODELS[m]) for t in TASKS} for m in compared}
 
     out = {
         "benchmark_suite": tables.benchmark_suite(results),
         "main_results": tables.main_results(results),
-        "score_heads": tables.score_heads(results),
+        "score_heads": tables.score_heads(compared),
         "calibration": tables.calibration(records),
         "cost": tables.cost(FULL_RUN_START),
     }
-    out.update(threshold_table(records, args.refresh_records))
-    out.update(probe_table(records, args.refresh_records))
+    out.update(threshold_table(recs, args.refresh_records))
+    out.update(probe_table(recs, args.refresh_records))
+    if len(compared) >= 2:
+        out["comparison"] = tables.comparison(compared)
     for name, tex in out.items():
         (PAPER / "tables" / f"{name}.tex").write_text(tex)
         print(f"tables/{name}.tex")
+    print(f"models compared: {', '.join(compared)}")
 
     plots = {
         "reliability": (figures.reliability(records), 6.5, 2.9),
@@ -58,12 +63,7 @@ def main() -> None:
         "multilingual": (figures.multilingual(records), 4.2, 4.6),
         "subjects": (figures.subjects(records), 6.0, 3.0),
     }
-    # Model comparison (only models with complete results; Jev plus the open models run so far).
-    compared = available_models("eval")
     if len(compared) >= 2:
-        (PAPER / "tables" / "comparison.tex").write_text(tables.comparison(compared))
-        print(f"tables/comparison.tex ({', '.join(compared)})")
-        recs = {m: records if m == "Jev" else {t: load_records(t, "eval", refresh=args.refresh_records, model=PAPER_MODELS[m]) for t in TASKS} for m in compared}
         plots["reliability_models"] = (figures.reliability_models(recs), 6.5, 3.3)
         plots["selective_models"] = (figures.selective_models(recs), 6.5, 2.6)
     for name, (plot, w, h) in plots.items():
@@ -79,44 +79,61 @@ def _complete(task: str, split: str, df, limit: int | None = None) -> bool:
     return got >= expected
 
 
-def threshold_table(records, refresh: bool) -> dict[str, str]:
+def threshold_table(recs: dict[str, dict], refresh: bool) -> dict[str, str]:
+    """Per model: thresholds tuned on its own dev sample, applied to its eval answers."""
     summary = {}
-    for t in THRESHOLD_TASKS:
-        dev = load_records(t, "dev", limit=THRESHOLD_DEV_LIMIT, refresh=refresh)
-        if not _complete(t, "dev", dev, THRESHOLD_DEV_LIMIT):
-            return {}
-        th = thr.tune(dev)
-        b = thr.apply(records[t], th)
-        ml = TASKS[t].multilabel
-        summary[t] = {
-            "thresholds": th,
-            "dev_examples": int(dev["uid"].nunique()),
-            "fixed": thr.f1_scores(b, "pred_fixed", ml),
-            "tuned": thr.f1_scores(b, "pred_tuned", ml),
-        }
+    for label, records in recs.items():
+        model = PAPER_MODELS[label]
+        summary[label] = {}
+        for t in THRESHOLD_TASKS:
+            dev = load_records(t, "dev", limit=THRESHOLD_DEV_LIMIT, refresh=refresh, model=model)
+            if not _complete(t, "dev", dev, THRESHOLD_DEV_LIMIT):
+                return {}
+            th = thr.tune(dev)
+            b = thr.apply(records[t], th)
+            ml = TASKS[t].multilabel
+            summary[label][t] = {
+                "thresholds": th,
+                "dev_examples": int(dev["uid"].nunique()),
+                "fixed": thr.f1_scores(b, "pred_fixed", ml),
+                "tuned": thr.f1_scores(b, "pred_tuned", ml),
+            }
     (RESULTS_DIR / "eval" / "thresholds.json").write_text(json.dumps(summary, indent=1) + "\n")
     return {"thresholds": tables.thresholds(summary)}
 
 
-def probe_table(records, refresh: bool) -> dict[str, str]:
-    probe = {p: load_records(p, "eval", refresh=refresh) for p in ("probe_mmlu_shuffled", "probe_mmlu_choices_only", "probe_ceval_choices_only")}
-    if not all(_complete(p, "eval", df) for p, df in probe.items()):
-        return {}
+PROBES = ("probe_mmlu_shuffled", "probe_mmlu_choices_only", "probe_ceval_choices_only")
 
-    def original(task):
-        d = records[task]
-        return d[(d["head"] == "answer") & d["subset"].isin(QUANTITATIVE_SUBJECTS[task])]["correct"].tolist()
 
-    rows = [
-        {"benchmark": "MMLU", "condition": "original", "correct": original("mmlu")},
-        {"benchmark": "MMLU", "condition": "options rotated", "correct": probe["probe_mmlu_shuffled"]["correct"].tolist()},
-        {"benchmark": "MMLU", "condition": "question withheld", "correct": probe["probe_mmlu_choices_only"]["correct"].tolist()},
-        {"benchmark": "C-Eval", "condition": "original", "correct": original("ceval")},
-        {"benchmark": "C-Eval", "condition": "question withheld", "correct": probe["probe_ceval_choices_only"]["correct"].tolist()},
+def probe_table(recs: dict[str, dict], refresh: bool) -> dict[str, str]:
+    """Calculation-heavy vs. other subjects (original requests) and the two probes, per model."""
+    probe = {}
+    for label in recs:
+        probe[label] = {p: load_records(p, "eval", refresh=refresh, model=PAPER_MODELS[label]) for p in PROBES}
+        if not all(_complete(p, "eval", df) for p, df in probe[label].items()):
+            return {}
+
+    def subjects(label, task, quantitative):
+        d = recs[label][task]
+        d = d[d["head"] == "answer"]
+        return d[d["subset"].isin(QUANTITATIVE_SUBJECTS[task]) == quantitative]["correct"]
+
+    spec = [
+        ("MMLU", "calc.-heavy, original", lambda m: subjects(m, "mmlu", True)),
+        ("MMLU", "other, original", lambda m: subjects(m, "mmlu", False)),
+        ("MMLU", "calc.-heavy, options rotated", lambda m: probe[m]["probe_mmlu_shuffled"]["correct"]),
+        ("MMLU", "calc.-heavy, question withheld", lambda m: probe[m]["probe_mmlu_choices_only"]["correct"]),
+        ("C-Eval", "calc.-heavy, original", lambda m: subjects(m, "ceval", True)),
+        ("C-Eval", "other, original", lambda m: subjects(m, "ceval", False)),
+        ("C-Eval", "calc.-heavy, question withheld", lambda m: probe[m]["probe_ceval_choices_only"]["correct"]),
     ]
-    summary = [{"benchmark": r["benchmark"], "condition": r["condition"], "n": len(r["correct"]), "accuracy": sum(r["correct"]) / len(r["correct"])} for r in rows]
-    (RESULTS_DIR / "eval" / "probes.json").write_text(json.dumps(summary, indent=1) + "\n")
-    return {"probes": tables.probes(rows)}
+    labels = list(recs)
+    rows = []
+    for bench, cond, get in spec:
+        vals = {m: get(m) for m in labels}
+        rows.append({"benchmark": bench, "condition": cond, "n": len(vals[labels[0]]), "acc": {m: float(v.mean()) for m, v in vals.items()}})
+    (RESULTS_DIR / "eval" / "probes.json").write_text(json.dumps(rows, indent=1) + "\n")
+    return {"probes": tables.probes(rows, labels)}
 
 
 if __name__ == "__main__":

@@ -1,0 +1,31 @@
+{
+ "task": "commonsense_qa",
+ "n_examples": 1221,
+ "n_answered": 1221,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.8558558558558559,
+  "ci95": [
+   0.8345618345618345,
+   0.8743038493038493
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.8558558558558559,
+   "ece": 0.03780565366424907,
+   "brier": 0.22185763275482026,
+   "mean_top_prob": 0.860680228243119,
+   "mean_confidence": 0.8258502853038987,
+   "sel_acc@50": 0.9672131147540983,
+   "sel_acc@80": 0.9191402251791198,
+   "aurc": 0.046239630487437,
+   "macro_f1": 0.8560274496208103
+  }
+ },
+ "aggregate": {}
+}

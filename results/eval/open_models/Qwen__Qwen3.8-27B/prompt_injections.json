@@ -1,0 +1,32 @@
+{
+ "task": "prompt_injections",
+ "n_examples": 116,
+ "n_answered": 116,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.7672413793103449,
+  "ci95": [
+   0.6896551724137931,
+   0.853448275862069
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.7672413793103449,
+   "balanced_accuracy": 0.775,
+   "f1": 0.7096774193548387,
+   "precision": 1.0,
+   "recall": 0.55,
+   "auroc": 0.9973214285714286,
+   "auprc": 0.9974130566292981,
+   "ece": 0.2478629144036729,
+   "brier": 0.201535562135051,
+   "positive_rate": 0.5172413793103449
+  }
+ },
+ "aggregate": {}
+}

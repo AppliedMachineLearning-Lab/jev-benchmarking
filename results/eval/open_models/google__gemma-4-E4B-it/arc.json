@@ -1,0 +1,40 @@
+{
+ "task": "arc",
+ "n_examples": 3548,
+ "n_answered": 3548,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.9323562570462233,
+  "ci95": [
+   0.923618940248027,
+   0.9401141488162346
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9323562570462233,
+   "ece": 0.048295370690764866,
+   "brier": 0.1138223793538282,
+   "mean_top_prob": 0.9806516277369882,
+   "mean_confidence": 0.9742135577966407,
+   "sel_acc@50": 0.9983089064261556,
+   "sel_acc@80": 0.9901338971106413,
+   "aurc": 0.00793927888847606
+  }
+ },
+ "aggregate": {},
+ "subsets": {
+  "ARC-Challenge": {
+   "n": 1172,
+   "primary": 0.8779863481228669
+  },
+  "ARC-Easy": {
+   "n": 2376,
+   "primary": 0.9591750841750841
+  }
+ }
+}

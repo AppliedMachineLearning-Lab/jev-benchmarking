@@ -1,32 +1,72 @@
 [
  {
   "benchmark": "MMLU",
-  "condition": "original",
+  "condition": "calc.-heavy, original",
   "n": 2207,
-  "accuracy": 0.9433620299048482
+  "acc": {
+   "Jev": 0.9433620299048482,
+   "Qwen3.8-27B": 0.7471681014952424,
+   "Gemma-4-E4B": 0.545536927956502
+  }
  },
  {
   "benchmark": "MMLU",
-  "condition": "options rotated",
-  "n": 2207,
-  "accuracy": 0.942908926144087
+  "condition": "other, original",
+  "n": 11835,
+  "acc": {
+   "Jev": 0.9133924799324039,
+   "Qwen3.8-27B": 0.8302492606675116,
+   "Gemma-4-E4B": 0.6977608787494719
+  }
  },
  {
   "benchmark": "MMLU",
-  "condition": "question withheld",
+  "condition": "calc.-heavy, options rotated",
   "n": 2207,
-  "accuracy": 0.31490711372904395
+  "acc": {
+   "Jev": 0.942908926144087,
+   "Qwen3.8-27B": 0.7444494789306751,
+   "Gemma-4-E4B": 0.5505210693248754
+  }
+ },
+ {
+  "benchmark": "MMLU",
+  "condition": "calc.-heavy, question withheld",
+  "n": 2207,
+  "acc": {
+   "Jev": 0.31490711372904395,
+   "Qwen3.8-27B": 0.3507023108291799,
+   "Gemma-4-E4B": 0.30357951971001357
+  }
  },
  {
   "benchmark": "C-Eval",
-  "condition": "original",
+  "condition": "calc.-heavy, original",
   "n": 3389,
-  "accuracy": 0.8143995278843317
+  "acc": {
+   "Jev": 0.8143995278843317,
+   "Qwen3.8-27B": 0.7438772499262319,
+   "Gemma-4-E4B": 0.4620832103865447
+  }
  },
  {
   "benchmark": "C-Eval",
-  "condition": "question withheld",
+  "condition": "other, original",
+  "n": 8953,
+  "acc": {
+   "Jev": 0.8486540824304702,
+   "Qwen3.8-27B": 0.8124650954987155,
+   "Gemma-4-E4B": 0.5658438512230537
+  }
+ },
+ {
+  "benchmark": "C-Eval",
+  "condition": "calc.-heavy, question withheld",
   "n": 3389,
-  "accuracy": 0.372971377987607
+  "acc": {
+   "Jev": 0.372971377987607,
+   "Qwen3.8-27B": 0.3989377397462378,
+   "Gemma-4-E4B": 0.30717025671289466
+  }
  }
 ]

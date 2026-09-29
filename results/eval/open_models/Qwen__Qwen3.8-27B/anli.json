@@ -1,0 +1,45 @@
+{
+ "task": "anli",
+ "n_examples": 3200,
+ "n_answered": 3200,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.74,
+  "ci95": [
+   0.7246875,
+   0.754375
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.74,
+   "ece": 0.09180005772554972,
+   "brier": 0.3838324838205645,
+   "mean_top_prob": 0.8250834128606914,
+   "mean_confidence": 0.7376251192910371,
+   "sel_acc@50": 0.88,
+   "sel_acc@80": 0.794140625,
+   "aurc": 0.12893801602551355,
+   "macro_f1": 0.7406287111017696
+  }
+ },
+ "aggregate": {},
+ "subsets": {
+  "r1": {
+   "n": 1000,
+   "primary": 0.809
+  },
+  "r2": {
+   "n": 1000,
+   "primary": 0.728
+  },
+  "r3": {
+   "n": 1200,
+   "primary": 0.6925
+  }
+ }
+}

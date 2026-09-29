@@ -1,0 +1,32 @@
+{
+ "task": "paws",
+ "n_examples": 8000,
+ "n_answered": 8000,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.74125,
+  "ci95": [
+   0.7323093749999999,
+   0.750625
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.74125,
+   "balanced_accuracy": 0.7382498905269304,
+   "f1": 0.7087788407428249,
+   "precision": 0.7052071668533034,
+   "recall": 0.7123868778280543,
+   "auroc": 0.8134528211615499,
+   "auprc": 0.7261745433903942,
+   "ece": 0.19607581489928572,
+   "brier": 0.22009867322654905,
+   "positive_rate": 0.442
+  }
+ },
+ "aggregate": {}
+}

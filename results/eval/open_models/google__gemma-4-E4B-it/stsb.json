@@ -1,0 +1,26 @@
+{
+ "task": "stsb",
+ "n_examples": 1379,
+ "n_answered": 1379,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "spearman",
+  "value": 0.8142406626891461,
+  "ci95": [
+   0.7929808621515498,
+   0.8366599943497335
+  ]
+ },
+ "heads": {
+  "answer": {
+   "spearman": 0.8142406626891461,
+   "pearson": 0.8153469495255754,
+   "kendall": 0.6420974460164578,
+   "mae": 0.7063793667778774
+  }
+ },
+ "aggregate": {}
+}

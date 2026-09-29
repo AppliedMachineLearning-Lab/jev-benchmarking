@@ -1,0 +1,31 @@
+{
+ "task": "pubmedqa",
+ "n_examples": 1000,
+ "n_answered": 1000,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.672,
+  "ci95": [
+   0.643,
+   0.702525
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.672,
+   "ece": 0.28769189611086177,
+   "brier": 0.5898390370398083,
+   "mean_top_prob": 0.9577018498953118,
+   "mean_confidence": 0.9365527748429677,
+   "sel_acc@50": 0.906,
+   "sel_acc@80": 0.75875,
+   "aurc": 0.1399318946573282,
+   "macro_f1": 0.5715871025017678
+  }
+ },
+ "aggregate": {}
+}

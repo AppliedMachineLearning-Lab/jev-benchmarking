@@ -1,0 +1,31 @@
+{
+ "task": "banking77",
+ "n_examples": 3076,
+ "n_answered": 3076,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.6703511053315995,
+  "ci95": [
+   0.6529502600780235,
+   0.6880770481144343
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.6703511053315995,
+   "ece": 0.2672669803995578,
+   "brier": 0.5823282588730282,
+   "mean_top_prob": 0.9376180857311571,
+   "mean_confidence": 0.9367972710697249,
+   "sel_acc@50": 0.8953185955786735,
+   "sel_acc@80": 0.7626980902072328,
+   "aurc": 0.131713675319253,
+   "macro_f1": 0.6616695988204317
+  }
+ },
+ "aggregate": {}
+}

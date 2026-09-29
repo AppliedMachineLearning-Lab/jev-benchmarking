@@ -1,0 +1,31 @@
+{
+ "task": "hellaswag",
+ "n_examples": 10042,
+ "n_answered": 10042,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.8290181238797052,
+  "ci95": [
+   0.8217486556462856,
+   0.8362402907787293
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.8290181238797052,
+   "ece": 0.1278401551110416,
+   "brier": 0.29158354520017005,
+   "mean_top_prob": 0.9568582789907468,
+   "mean_confidence": 0.9424777053209957,
+   "sel_acc@50": 0.9772953594901415,
+   "sel_acc@80": 0.9067712223052029,
+   "aurc": 0.046353903222814345,
+   "macro_f1": 0.8289656700184556
+  }
+ },
+ "aggregate": {}
+}

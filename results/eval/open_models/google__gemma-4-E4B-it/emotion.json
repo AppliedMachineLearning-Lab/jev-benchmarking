@@ -1,0 +1,31 @@
+{
+ "task": "emotion",
+ "n_examples": 2000,
+ "n_answered": 2000,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.5685,
+  "ci95": [
+   0.546,
+   0.5895
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.5685,
+   "ece": 0.4011077225264959,
+   "brier": 0.8188704826918402,
+   "mean_top_prob": 0.969369779971036,
+   "mean_confidence": 0.9632437359652432,
+   "sel_acc@50": 0.709,
+   "sel_acc@80": 0.62,
+   "aurc": 0.29843333014825135,
+   "macro_f1": 0.4693356053820373
+  }
+ },
+ "aggregate": {}
+}

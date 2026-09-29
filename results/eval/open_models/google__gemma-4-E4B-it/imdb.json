@@ -1,0 +1,31 @@
+{
+ "task": "imdb",
+ "n_examples": 25000,
+ "n_answered": 25000,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.9556,
+  "ci95": [
+   0.9532,
+   0.958141
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.9556,
+   "ece": 0.03926163597073032,
+   "brier": 0.08169082352319186,
+   "mean_top_prob": 0.9944690742182585,
+   "mean_confidence": 0.988938148436517,
+   "sel_acc@50": 0.99352,
+   "sel_acc@80": 0.99035,
+   "aurc": 0.007656356822037208,
+   "macro_f1": 0.9555994498594236
+  }
+ },
+ "aggregate": {}
+}

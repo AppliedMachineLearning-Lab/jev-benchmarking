@@ -1,0 +1,56 @@
+{
+ "task": "summeval",
+ "n_examples": 1600,
+ "n_answered": 1600,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "*",
+  "metric": "mean_group_spearman",
+  "value": 0.5404409924416,
+  "ci95": [
+   0.5083647230373175,
+   0.5568863547917895
+  ]
+ },
+ "heads": {
+  "coherence": {
+   "spearman": 0.6650279896346954,
+   "pearson": 0.663564424605832,
+   "kendall": 0.4932201853980583,
+   "mae": 0.6853444883823719,
+   "group_spearman": 0.6512818031390732,
+   "group_kendall": 0.5131009520670553
+  },
+  "consistency": {
+   "spearman": 0.5515110435719499,
+   "pearson": 0.7384734675795981,
+   "kendall": 0.44517400347325714,
+   "mae": 0.36287869909645293,
+   "group_spearman": 0.546101626194938,
+   "group_kendall": 0.45636006805896695
+  },
+  "fluency": {
+   "spearman": 0.4468782419894784,
+   "pearson": 0.46003035073188014,
+   "kendall": 0.3559313787792942,
+   "mae": 1.3456710189455379,
+   "group_spearman": 0.4123441906557472,
+   "group_kendall": 0.3410280355534555
+  },
+  "relevance": {
+   "spearman": 0.5577898949749998,
+   "pearson": 0.5897801879100351,
+   "kendall": 0.4163510274412944,
+   "mae": 0.6298348694260634,
+   "group_spearman": 0.5520363497766418,
+   "group_kendall": 0.4382405968555097
+  }
+ },
+ "aggregate": {
+  "mean_group_spearman": 0.5404409924416,
+  "mean_group_kendall": 0.4371824131337469,
+  "mean_spearman": 0.5553017925427809
+ }
+}

@@ -1,0 +1,31 @@
+{
+ "task": "winogrande",
+ "n_examples": 1267,
+ "n_answered": 1267,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.6164167324388319,
+  "ci95": [
+   0.590370955011839,
+   0.6444554064719811
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.6164167324388319,
+   "ece": 0.2903585514511417,
+   "brier": 0.6419796221251397,
+   "mean_top_prob": 0.9051163753466085,
+   "mean_confidence": 0.8102327506932171,
+   "sel_acc@50": 0.7113564668769716,
+   "sel_acc@80": 0.6380670611439843,
+   "aurc": 0.28700809150641116,
+   "macro_f1": 0.6163629612277143
+  }
+ },
+ "aggregate": {}
+}

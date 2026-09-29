@@ -1,0 +1,27 @@
+{
+ "task": "sst5",
+ "n_examples": 2210,
+ "n_answered": 2210,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "argmax_accuracy",
+  "value": 0.528054298642534,
+  "ci95": [
+   0.5063122171945701,
+   0.5497963800904978
+  ]
+ },
+ "heads": {
+  "answer": {
+   "spearman": 0.7792425921511645,
+   "pearson": 0.7766579810046546,
+   "kendall": 0.6302913438288197,
+   "mae": 0.5728154059334205,
+   "argmax_accuracy": 0.528054298642534
+  }
+ },
+ "aggregate": {}
+}

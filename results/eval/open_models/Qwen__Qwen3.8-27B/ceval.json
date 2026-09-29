@@ -1,0 +1,241 @@
+{
+ "task": "ceval",
+ "n_examples": 12342,
+ "n_answered": 12342,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.7936315021876519,
+  "ci95": [
+   0.7861772808296873,
+   0.8008426511100308
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.7936315021876519,
+   "ece": 0.03235792684043078,
+   "brier": 0.2819160281965047,
+   "mean_top_prob": 0.8252390211677896,
+   "mean_confidence": 0.7669853615570529,
+   "sel_acc@50": 0.9718035974720467,
+   "sel_acc@80": 0.887178448450476,
+   "aurc": 0.05784930017403241,
+   "macro_f1": 0.7930961723165828
+  }
+ },
+ "aggregate": {},
+ "subsets": {
+  "accountant": {
+   "n": 443,
+   "primary": 0.7629796839729119
+  },
+  "advanced_mathematics": {
+   "n": 173,
+   "primary": 0.630057803468208
+  },
+  "art_studies": {
+   "n": 298,
+   "primary": 0.8422818791946308
+  },
+  "basic_medicine": {
+   "n": 175,
+   "primary": 0.8857142857142857
+  },
+  "business_administration": {
+   "n": 301,
+   "primary": 0.717607973421927
+  },
+  "chinese_language_and_literature": {
+   "n": 209,
+   "primary": 0.7990430622009569
+  },
+  "civil_servant": {
+   "n": 429,
+   "primary": 0.7389277389277389
+  },
+  "clinical_medicine": {
+   "n": 200,
+   "primary": 0.845
+  },
+  "college_chemistry": {
+   "n": 224,
+   "primary": 0.7008928571428571
+  },
+  "college_economics": {
+   "n": 497,
+   "primary": 0.7605633802816901
+  },
+  "college_physics": {
+   "n": 176,
+   "primary": 0.8295454545454546
+  },
+  "college_programming": {
+   "n": 342,
+   "primary": 0.7573099415204678
+  },
+  "computer_architecture": {
+   "n": 193,
+   "primary": 0.7823834196891192
+  },
+  "computer_network": {
+   "n": 171,
+   "primary": 0.7485380116959064
+  },
+  "discrete_mathematics": {
+   "n": 153,
+   "primary": 0.6666666666666666
+  },
+  "education_science": {
+   "n": 270,
+   "primary": 0.8111111111111111
+  },
+  "electrical_engineer": {
+   "n": 339,
+   "primary": 0.5781710914454278
+  },
+  "environmental_impact_assessment_engineer": {
+   "n": 281,
+   "primary": 0.7153024911032029
+  },
+  "fire_engineer": {
+   "n": 282,
+   "primary": 0.5567375886524822
+  },
+  "high_school_biology": {
+   "n": 175,
+   "primary": 0.9142857142857143
+  },
+  "high_school_chemistry": {
+   "n": 172,
+   "primary": 0.8546511627906976
+  },
+  "high_school_chinese": {
+   "n": 178,
+   "primary": 0.6123595505617978
+  },
+  "high_school_geography": {
+   "n": 178,
+   "primary": 0.8651685393258427
+  },
+  "high_school_history": {
+   "n": 182,
+   "primary": 0.8681318681318682
+  },
+  "high_school_mathematics": {
+   "n": 166,
+   "primary": 0.5421686746987951
+  },
+  "high_school_physics": {
+   "n": 175,
+   "primary": 0.8285714285714286
+  },
+  "high_school_politics": {
+   "n": 176,
+   "primary": 0.8693181818181818
+  },
+  "ideological_and_moral_cultivation": {
+   "n": 172,
+   "primary": 0.8546511627906976
+  },
+  "law": {
+   "n": 221,
+   "primary": 0.8461538461538461
+  },
+  "legal_professional": {
+   "n": 215,
+   "primary": 0.6790697674418604
+  },
+  "logic": {
+   "n": 204,
+   "primary": 0.7598039215686274
+  },
+  "mao_zedong_thought": {
+   "n": 219,
+   "primary": 0.9178082191780822
+  },
+  "marxism": {
+   "n": 179,
+   "primary": 0.9385474860335196
+  },
+  "metrology_engineer": {
+   "n": 219,
+   "primary": 0.7488584474885844
+  },
+  "middle_school_biology": {
+   "n": 192,
+   "primary": 0.9635416666666666
+  },
+  "middle_school_chemistry": {
+   "n": 185,
+   "primary": 0.9891891891891892
+  },
+  "middle_school_geography": {
+   "n": 108,
+   "primary": 0.9629629629629629
+  },
+  "middle_school_history": {
+   "n": 207,
+   "primary": 0.9178743961352657
+  },
+  "middle_school_mathematics": {
+   "n": 177,
+   "primary": 0.8305084745762712
+  },
+  "middle_school_physics": {
+   "n": 178,
+   "primary": 0.9775280898876404
+  },
+  "middle_school_politics": {
+   "n": 193,
+   "primary": 0.9637305699481865
+  },
+  "modern_chinese_history": {
+   "n": 212,
+   "primary": 0.8773584905660378
+  },
+  "operating_system": {
+   "n": 179,
+   "primary": 0.8156424581005587
+  },
+  "physician": {
+   "n": 443,
+   "primary": 0.8532731376975169
+  },
+  "plant_protection": {
+   "n": 199,
+   "primary": 0.8341708542713567
+  },
+  "probability_and_statistics": {
+   "n": 166,
+   "primary": 0.6325301204819277
+  },
+  "professional_tour_guide": {
+   "n": 266,
+   "primary": 0.8421052631578947
+  },
+  "sports_science": {
+   "n": 180,
+   "primary": 0.7611111111111111
+  },
+  "tax_accountant": {
+   "n": 443,
+   "primary": 0.7178329571106095
+  },
+  "teacher_qualification": {
+   "n": 399,
+   "primary": 0.9373433583959899
+  },
+  "urban_and_rural_planner": {
+   "n": 418,
+   "primary": 0.7272727272727273
+  },
+  "veterinary_medicine": {
+   "n": 210,
+   "primary": 0.8952380952380953
+  }
+ }
+}

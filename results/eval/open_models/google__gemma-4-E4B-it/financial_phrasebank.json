@@ -1,0 +1,31 @@
+{
+ "task": "financial_phrasebank",
+ "n_examples": 970,
+ "n_answered": 970,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.6515463917525773,
+  "ci95": [
+   0.622139175257732,
+   0.6824742268041237
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.6515463917525773,
+   "ece": 0.32636676580217366,
+   "brier": 0.6625040890214834,
+   "mean_top_prob": 0.973815504395818,
+   "mean_confidence": 0.9607232565937271,
+   "sel_acc@50": 0.7670103092783506,
+   "sel_acc@80": 0.6842783505154639,
+   "aurc": 0.21866166700538617,
+   "macro_f1": 0.6791499017681321
+  }
+ },
+ "aggregate": {}
+}

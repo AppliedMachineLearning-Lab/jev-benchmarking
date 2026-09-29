@@ -1,0 +1,31 @@
+{
+ "task": "pubmedqa",
+ "n_examples": 1000,
+ "n_answered": 1000,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.732,
+  "ci95": [
+   0.705475,
+   0.76
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.732,
+   "ece": 0.12401088940807449,
+   "brier": 0.38749770657282495,
+   "mean_top_prob": 0.8502553787760767,
+   "mean_confidence": 0.7753830681641148,
+   "sel_acc@50": 0.916,
+   "sel_acc@80": 0.80375,
+   "aurc": 0.1062245820230864,
+   "macro_f1": 0.6296857197249549
+  }
+ },
+ "aggregate": {}
+}

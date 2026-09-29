@@ -1,0 +1,80 @@
+{
+ "task": "llm_aggrefact",
+ "n_examples": 29320,
+ "n_answered": 29320,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "*",
+  "metric": "mean_balanced_accuracy",
+  "value": 0.7692325551679015,
+  "ci95": [
+   0.7595603342477386,
+   0.7804379206312823
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.7823328785811733,
+   "balanced_accuracy": 0.826036931314952,
+   "f1": 0.8425053057598342,
+   "precision": 0.964951950254381,
+   "recall": 0.747634898388227,
+   "auroc": 0.9022517893526899,
+   "auprc": 0.9673673422493195,
+   "ece": 0.20196736843306204,
+   "brier": 0.17744418708329862,
+   "positive_rate": 0.7787175989085948
+  }
+ },
+ "aggregate": {
+  "mean_balanced_accuracy": 0.7692325551679015
+ },
+ "subsets": {
+  "AggreFact-CNN": {
+   "n": 558,
+   "primary": 0.701911965542599
+  },
+  "AggreFact-XSum": {
+   "n": 558,
+   "primary": 0.7286678234046655
+  },
+  "ClaimVerify": {
+   "n": 1088,
+   "primary": 0.7997677090089059
+  },
+  "ExpertQA": {
+   "n": 3702,
+   "primary": 0.5769699894235245
+  },
+  "FactCheck-GPT": {
+   "n": 1566,
+   "primary": 0.7032406579653138
+  },
+  "Lfqa": {
+   "n": 1911,
+   "primary": 0.8676486861866101
+  },
+  "RAGTruth": {
+   "n": 16371,
+   "primary": 0.8615685208196556
+  },
+  "Reveal": {
+   "n": 1710,
+   "primary": 0.885162213740458
+  },
+  "TofuEval-MediaS": {
+   "n": 726,
+   "primary": 0.7590882377634119
+  },
+  "TofuEval-MeetB": {
+   "n": 772,
+   "primary": 0.820064308681672
+  },
+  "Wice": {
+   "n": 358,
+   "primary": 0.7574679943100995
+  }
+ }
+}

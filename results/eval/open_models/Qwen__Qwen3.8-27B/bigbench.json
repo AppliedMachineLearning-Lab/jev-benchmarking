@@ -1,0 +1,284 @@
+{
+ "task": "bigbench",
+ "n_examples": 13228,
+ "n_answered": 13228,
+ "models": [
+  "hf:Qwen/Qwen3.8-27B"
+ ],
+ "primary": {
+  "head": "answer",
+  "metric": "accuracy",
+  "value": 0.7496976111279104,
+  "ci95": [
+   0.7419432264892651,
+   0.757523813123677
+  ]
+ },
+ "heads": {
+  "answer": {
+   "accuracy": 0.7496976111279104,
+   "ece": 0.06515423934621327,
+   "brier": 0.3542928418467754,
+   "mean_top_prob": 0.8145214936389104,
+   "mean_confidence": 0.7046822283519232,
+   "sel_acc@50": 0.9188085878439674,
+   "sel_acc@80": 0.8176148176148176,
+   "aurc": 0.09977304523887869
+  }
+ },
+ "aggregate": {},
+ "subsets": {
+  "abstract_narrative_understanding": {
+   "n": 500,
+   "primary": 0.766
+  },
+  "anachronisms": {
+   "n": 46,
+   "primary": 0.6086956521739131
+  },
+  "analogical_similarity": {
+   "n": 64,
+   "primary": 0.59375
+  },
+  "authorship_verification": {
+   "n": 176,
+   "primary": 0.7840909090909091
+  },
+  "bbq_lite_json": {
+   "n": 500,
+   "primary": 0.894
+  },
+  "causal_judgment": {
+   "n": 38,
+   "primary": 0.6842105263157895
+  },
+  "cause_and_effect": {
+   "n": 30,
+   "primary": 1.0
+  },
+  "contextual_parametric_knowledge_conflicts": {
+   "n": 500,
+   "primary": 0.732
+  },
+  "cryobiology_spanish": {
+   "n": 29,
+   "primary": 0.9655172413793104
+  },
+  "disambiguation_qa": {
+   "n": 51,
+   "primary": 0.5490196078431373
+  },
+  "discourse_marker_prediction": {
+   "n": 171,
+   "primary": 0.6900584795321637
+  },
+  "entailed_polarity": {
+   "n": 29,
+   "primary": 1.0
+  },
+  "entailed_polarity_hindi": {
+   "n": 27,
+   "primary": 0.8518518518518519
+  },
+  "epistemic_reasoning": {
+   "n": 400,
+   "primary": 0.785
+  },
+  "fact_checker": {
+   "n": 500,
+   "primary": 0.782
+  },
+  "fantasy_reasoning": {
+   "n": 40,
+   "primary": 0.775
+  },
+  "formal_fallacies_syllogisms_negation": {
+   "n": 500,
+   "primary": 0.762
+  },
+  "goal_step_wikihow": {
+   "n": 500,
+   "primary": 0.944
+  },
+  "hhh_alignment": {
+   "n": 42,
+   "primary": 0.9047619047619048
+  },
+  "hindu_knowledge": {
+   "n": 35,
+   "primary": 0.9142857142857143
+  },
+  "hinglish_toxicity": {
+   "n": 40,
+   "primary": 0.875
+  },
+  "hyperbaton": {
+   "n": 500,
+   "primary": 0.812
+  },
+  "implicatures": {
+   "n": 98,
+   "primary": 0.8877551020408163
+  },
+  "indic_cause_and_effect": {
+   "n": 117,
+   "primary": 0.8717948717948718
+  },
+  "intent_recognition": {
+   "n": 138,
+   "primary": 0.9782608695652174
+  },
+  "international_phonetic_alphabet_nli": {
+   "n": 25,
+   "primary": 0.84
+  },
+  "kannada": {
+   "n": 63,
+   "primary": 0.42857142857142855
+  },
+  "language_identification": {
+   "n": 500,
+   "primary": 0.592
+  },
+  "logic_grid_puzzle": {
+   "n": 200,
+   "primary": 0.505
+  },
+  "logical_deduction": {
+   "n": 300,
+   "primary": 0.7233333333333334
+  },
+  "logical_fallacy_detection": {
+   "n": 500,
+   "primary": 0.938
+  },
+  "medical_questions_russian": {
+   "n": 51,
+   "primary": 1.0
+  },
+  "metaphor_boolean": {
+   "n": 136,
+   "primary": 0.9264705882352942
+  },
+  "metaphor_understanding": {
+   "n": 46,
+   "primary": 0.6739130434782609
+  },
+  "minute_mysteries_qa": {
+   "n": 40,
+   "primary": 0.325
+  },
+  "misconceptions": {
+   "n": 43,
+   "primary": 0.7674418604651163
+  },
+  "moral_permissibility": {
+   "n": 68,
+   "primary": 0.7352941176470589
+  },
+  "movie_dialog_same_or_different": {
+   "n": 500,
+   "primary": 0.746
+  },
+  "movie_recommendation": {
+   "n": 100,
+   "primary": 0.87
+  },
+  "parsinlu_qa": {
+   "n": 210,
+   "primary": 0.5428571428571428
+  },
+  "periodic_elements": {
+   "n": 23,
+   "primary": 0.7391304347826086
+  },
+  "phrase_relatedness": {
+   "n": 20,
+   "primary": 1.0
+  },
+  "play_dialog_same_or_different": {
+   "n": 500,
+   "primary": 0.618
+  },
+  "presuppositions_as_nli": {
+   "n": 147,
+   "primary": 0.6666666666666666
+  },
+  "question_selection": {
+   "n": 316,
+   "primary": 0.9367088607594937
+  },
+  "real_or_fake_text": {
+   "n": 500,
+   "primary": 0.368
+  },
+  "reasoning_about_colored_objects": {
+   "n": 400,
+   "primary": 0.855
+  },
+  "rhyming": {
+   "n": 136,
+   "primary": 0.4852941176470588
+  },
+  "ruin_names": {
+   "n": 89,
+   "primary": 0.9101123595505618
+  },
+  "salient_translation_error_detection": {
+   "n": 199,
+   "primary": 0.6532663316582915
+  },
+  "simple_ethical_questions": {
+   "n": 23,
+   "primary": 1.0
+  },
+  "snarks": {
+   "n": 36,
+   "primary": 0.8611111111111112
+  },
+  "social_iqa": {
+   "n": 387,
+   "primary": 0.7881136950904393
+  },
+  "social_support": {
+   "n": 179,
+   "primary": 0.27932960893854747
+  },
+  "sports_understanding": {
+   "n": 197,
+   "primary": 0.7106598984771574
+  },
+  "strange_stories": {
+   "n": 34,
+   "primary": 0.7941176470588235
+  },
+  "strategyqa": {
+   "n": 457,
+   "primary": 0.7549234135667396
+  },
+  "swahili_english_proverbs": {
+   "n": 30,
+   "primary": 0.8
+  },
+  "timedial": {
+   "n": 500,
+   "primary": 0.898
+  },
+  "understanding_fables": {
+   "n": 37,
+   "primary": 0.9459459459459459
+  },
+  "undo_permutation": {
+   "n": 60,
+   "primary": 0.6333333333333333
+  },
+  "which_wiki_edit": {
+   "n": 114,
+   "primary": 0.6754385964912281
+  },
+  "winowhy": {
+   "n": 500,
+   "primary": 0.636
+  }
+ }
+}

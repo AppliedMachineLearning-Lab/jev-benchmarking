@@ -1,0 +1,56 @@
+{
+ "task": "summeval",
+ "n_examples": 1600,
+ "n_answered": 1600,
+ "models": [
+  "hf:google/gemma-4-E4B-it"
+ ],
+ "primary": {
+  "head": "*",
+  "metric": "mean_group_spearman",
+  "value": 0.4612841724851531,
+  "ci95": [
+   0.42551170513292425,
+   0.4810833366668973
+  ]
+ },
+ "heads": {
+  "coherence": {
+   "spearman": 0.5043078085914503,
+   "pearson": 0.494820458982328,
+   "kendall": 0.3653083756490506,
+   "mae": 1.0070858570660408,
+   "group_spearman": 0.5149566308854598,
+   "group_kendall": 0.39756894801808296
+  },
+  "consistency": {
+   "spearman": 0.44597125175155905,
+   "pearson": 0.6703825857753446,
+   "kendall": 0.3572895264129355,
+   "mae": 0.32000689767804613,
+   "group_spearman": 0.48684506490475465,
+   "group_kendall": 0.405557924251962
+  },
+  "fluency": {
+   "spearman": 0.35679726662701866,
+   "pearson": 0.4292933896337984,
+   "kendall": 0.28117673441849345,
+   "mae": 0.9656174654330407,
+   "group_spearman": 0.35219048850591694,
+   "group_kendall": 0.2909426745130804
+  },
+  "relevance": {
+   "spearman": 0.470561952453734,
+   "pearson": 0.5095967465701745,
+   "kendall": 0.3430233856353521,
+   "mae": 0.6366901478603672,
+   "group_spearman": 0.49114450564448087,
+   "group_kendall": 0.38583839309621587
+  }
+ },
+ "aggregate": {
+  "mean_group_spearman": 0.4612841724851531,
+  "mean_group_kendall": 0.36997698496983533,
+  "mean_spearman": 0.4444095698559405
+ }
+}

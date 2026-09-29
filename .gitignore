@@ -8,8 +8,6 @@ cache/*
 deep-dive/
 *.db
 .env
-# Paid Jev responses + spend ledger: keep under version control
-!cache/responses.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -231,6 +229,7 @@ scribbles/
 
 # local working notes for Claude Code, kept out of the repo
 CLAUDE.md
+TODO.md
 
 # paper stuff (figures, tables, etc. -> will be tracked on overleaf)
 paper/

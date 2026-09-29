@@ -102,12 +102,13 @@ class ResponseCache:
         ).fetchone()
         return tokens * USD_PER_INPUT_TOKEN
 
-    def usage_by_task(self, since: float = 0.0, model_like: str = "jev-%") -> list[tuple]:
-        """(task, requests, input tokens, estimated tokens, mean latency) for responses created at/after `since`."""
+    def usage_by_task(self, since: float = 0.0, until: float = float("inf"), model_like: str = "jev-%") -> list[tuple]:
+        """(task, requests, input tokens, estimated tokens, mean latency) for responses created in [since, until)."""
         return self.db.execute(
             """SELECT task, COUNT(*), SUM(input_tokens), SUM(est_tokens), AVG(latency_s)
-               FROM responses WHERE created_at >= ? AND model LIKE ? GROUP BY task ORDER BY SUM(input_tokens) DESC""",
-            (since, model_like),
+               FROM responses WHERE created_at >= ? AND created_at < ? AND model LIKE ?
+               GROUP BY task ORDER BY SUM(input_tokens) DESC""",
+            (since, until, model_like),
         ).fetchall()
 
     def errors_by_task(self) -> list[tuple]:

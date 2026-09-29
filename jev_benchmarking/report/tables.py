@@ -128,11 +128,12 @@ def calibration(records: dict[str, pd.DataFrame]) -> str:
     )
 
 
-def cost(since: float, cache: ResponseCache | None = None) -> str:
-    """Requests/tokens/cost/latency of the eval run (responses created at/after `since`, i.e. without the
-    dev-split pilot). Latency is client-side wall time per request at 32 concurrent requests."""
+def cost(since: float, until: float, cache: ResponseCache | None = None) -> str:
+    """Requests/tokens/cost/latency of the eval run: responses created in [since, until), which excludes the
+    dev-split pilot before it and the threshold samples/probes after it (those reuse task names, so a window
+    open at the end would count them). Latency is client-side wall time per request at 32 concurrent requests."""
     cache = cache or ResponseCache()
-    usage = {task: (n, tok, lat) for task, n, tok, _, lat in cache.usage_by_task(since)}
+    usage = {task: (n, tok, lat) for task, n, tok, _, lat in cache.usage_by_task(since, until)}
     body, shade = [], False
     tot_n = tot_tok = 0
     lat_weighted = 0.0

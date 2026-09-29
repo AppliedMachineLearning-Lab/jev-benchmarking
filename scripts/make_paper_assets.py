@@ -21,8 +21,10 @@ from jev_benchmarking.tasks import ALL_TASKS, TASKS
 PAPER = ROOT / "paper"
 THRESHOLD_TASKS = ("go_emotions", "unfair_tos", "agb_de", "toxic_chat")
 THRESHOLD_DEV_LIMIT = 1000  # size of the dev sample thresholds are tuned on (see run.py --limit)
-# The full eval run started here; everything earlier in the ledger is the dev-split pilot.
+# The full eval run lasted 2026-09-26 21:01 to 2026-09-27 02:16. Earlier: the dev-split pilot; later (from
+# 2026-09-27 15:27): threshold samples and memorization probes, which must not count as eval-run cost.
 FULL_RUN_START = datetime.datetime(2026, 9, 26, 20, 40).timestamp()
+FULL_RUN_END = datetime.datetime(2026, 9, 27, 12, 0).timestamp()
 
 
 def main() -> None:
@@ -46,7 +48,7 @@ def main() -> None:
         "main_results": tables.main_results(results),
         "score_heads": tables.score_heads(compared),
         "calibration": tables.calibration(records),
-        "cost": tables.cost(FULL_RUN_START),
+        "cost": tables.cost(FULL_RUN_START, FULL_RUN_END),
     }
     out.update(threshold_table(recs, args.refresh_records))
     out.update(probe_table(recs, args.refresh_records))

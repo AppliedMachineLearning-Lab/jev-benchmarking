@@ -123,6 +123,8 @@ partitions and e-mail addresses to your own cluster.
 
 ## License
 
+The code in this repository is licensed under the [MIT License](LICENSE).
+
 The model responses published on Zenodo are licensed under the terms in
 [responses/LICENSE_RESPONSES.md](responses/LICENSE_RESPONSES.md): the Jev responses under the Jev Responses
 License 1.0 (research and evaluation use; no model distillation, no training models to imitate Jev, no

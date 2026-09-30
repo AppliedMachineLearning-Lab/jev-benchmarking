@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p logs
-PY="${PY:-$HOME/uv_environments/jevbenchmarking/bin/python}"
+PY="${PY:-python}"  # python of the active environment; override with PY=/path/to/python
 LOG="logs/full_run_$(date +%Y%m%d_%H%M%S).log"
 setsid nohup "$PY" -u scripts/run.py "${@:-all}" --split eval --until-done --yes \
     --max-cost "${MAX_COST:-10.30}" --rpm "${RPM:-1100}" >"$LOG" 2>&1 </dev/null &

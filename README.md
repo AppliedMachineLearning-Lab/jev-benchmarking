@@ -132,23 +132,13 @@ Apache License 2.0.
 ## Citation
 
 ```bibtex
-@misc{deusser2026jev,
-  title         = {Evaluating and Benchmarking the System One Model Jev},
-  author        = {Deu{\ss}er, Tobias and Sparrenberg, Lorenz and Sifa, Rafet},
-  year          = {2026},
-  eprint        = {2609.37647},
-  archivePrefix = {arXiv},
-  primaryClass  = {cs.CL},
-  url           = {https://arxiv.org/abs/2609.37647}
-}
-
-@dataset{deusser2026jevdata,
-  title     = {Evaluating and Benchmarking the System One Model Jev},
-  author    = {Deu{\ss}er, Tobias and Sparrenberg, Lorenz and Sifa, Rafet},
-  year      = {2026},
-  version   = {1.0},
-  publisher = {Zenodo},
-  doi       = {10.5281/zenodo.23039006},
-  url       = {https://doi.org/10.5281/zenodo.23039006}
+@misc{deußer2026evaluatingbenchmarkingmodeljev,
+      title={Evaluating and Benchmarking the System One Model Jev}, 
+      author={Tobias Deußer and Lorenz Sparrenberg and Rafet Sifa},
+      year={2026},
+      eprint={2609.37647},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2609.37647}, 
 }
 ```

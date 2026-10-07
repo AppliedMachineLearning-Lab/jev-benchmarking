@@ -1,0 +1,57 @@
+\begin{tabular}{l l l r r l}
+    \toprule
+    Dataset & Hugging Face source & Split & $n$ & Lang. & Primitive \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Text classification}} \\
+    AG News~\cite{zhang2015character} & {\scriptsize\href{https://huggingface.co/datasets/fancyzhx/ag_news}{\texttt{fancyzhx/ag\_news}}} & test & 7{,}600 &  & Choice (4) \\
+    \rowcolor{gray!10}IMDB~\cite{maas-etal-2011-learning} & {\scriptsize\href{https://huggingface.co/datasets/stanfordnlp/imdb}{\texttt{stanfordnlp/imdb}}} & test & 25{,}000 &  & Choice (2) \\
+    Rotten Tomatoes~\cite{pang-lee-2005-seeing} & {\scriptsize\href{https://huggingface.co/datasets/cornell-movie-review-data/rotten_tomatoes}{\texttt{cornell-movie-review-data/rotten\_tomatoes}}} & test & 1{,}066 &  & Choice (2) \\
+    \rowcolor{gray!10}SST-2~\cite{socher-etal-2013-recursive} & {\scriptsize\href{https://huggingface.co/datasets/stanfordnlp/sst2}{\texttt{stanfordnlp/sst2}}} & val. & 872 &  & Choice (2) \\
+    Emotion~\cite{saravia-etal-2018-carer} & {\scriptsize\href{https://huggingface.co/datasets/dair-ai/emotion}{\texttt{dair-ai/emotion}}} & test & 2{,}000 &  & Choice (6) \\
+    \rowcolor{gray!10}Financial PhraseBank~\cite{malo2014good,araci2019finbertfinancialsentimentanalysis} & {\scriptsize\href{https://huggingface.co/datasets/atrost/financial_phrasebank}{\texttt{atrost/financial\_phrasebank}}} & test & 970 &  & Choice (3) \\
+    SMS Spam~\cite{Almeida2011SpamFiltering} & {\scriptsize\href{https://huggingface.co/datasets/ucirvine/sms_spam}{\texttt{ucirvine/sms\_spam}}} & all & 5{,}574 &  & Noul \\
+    \rowcolor{gray!10}Language ID~\cite{papluca2021langid} & {\scriptsize\href{https://huggingface.co/datasets/papluca/language-identification}{\texttt{papluca/language-identification}}} & test & 10{,}000 &  & Choice (20) \\
+    GoEmotions~\cite{demszky-etal-2020-goemotions} & {\scriptsize\href{https://huggingface.co/datasets/google-research-datasets/go_emotions}{\texttt{google-research-datasets/go\_emotions}}} & test & 5{,}427 &  & Noul $\times$28 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Intent and topic routing}} \\
+    Banking77~\cite{casanueva-etal-2020-efficient} & {\scriptsize\href{https://huggingface.co/datasets/mteb/banking77}{\texttt{mteb/banking77}}} & test & 3{,}076 &  & Choice (77) \\
+    \rowcolor{gray!10}CLINC150~\cite{larson-etal-2019-evaluation} & {\scriptsize\href{https://huggingface.co/datasets/clinc/clinc_oos}{\texttt{clinc/clinc\_oos}}} & test & 5{,}500 &  & Choice (151) \\
+    SIB-200~\cite{adelani-etal-2024-sib} & {\scriptsize\href{https://huggingface.co/datasets/Davlan/sib200}{\texttt{Davlan/sib200}}} & test & 41{,}820 & 205 & Choice (7) \\
+    \midrule
+    \multicolumn{6}{l}{\textit{NLI, paraphrase and grounding}} \\
+    ANLI~\cite{nie-etal-2020-adversarial} & {\scriptsize\href{https://huggingface.co/datasets/facebook/anli}{\texttt{facebook/anli}}} & test R1--R3 & 3{,}200 &  & Choice (3) \\
+    \rowcolor{gray!10}AfriXNLI~\cite{adelani-etal-2025-irokobench} & {\scriptsize\href{https://huggingface.co/datasets/masakhane/afrixnli}{\texttt{masakhane/afrixnli}}} & test & 10{,}800 & 18 & Choice (3) \\
+    PAWS~\cite{zhang-etal-2019-paws} & {\scriptsize\href{https://huggingface.co/datasets/google-research-datasets/paws}{\texttt{google-research-datasets/paws}}} & test & 8{,}000 &  & Noul \\
+    \rowcolor{gray!10}LLM-AggreFact~\cite{tang-etal-2024-minicheck} & {\scriptsize\href{https://huggingface.co/datasets/lytang/LLM-AggreFact}{\texttt{lytang/LLM-AggreFact}}} & test & 29{,}320 &  & Noul \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Reading comprehension and knowledge}} \\
+    BoolQ~\cite{clark-etal-2019-boolq} & {\scriptsize\href{https://huggingface.co/datasets/google/boolq}{\texttt{google/boolq}}} & val. & 3{,}270 &  & Noul \\
+    \rowcolor{gray!10}Belebele~\cite{bandarkar-etal-2024-belebele} & {\scriptsize\href{https://huggingface.co/datasets/facebook/belebele}{\texttt{facebook/belebele}}} & test & 109{,}800 & 122 & Choice (4) \\
+    PubMedQA~\cite{jin-etal-2019-pubmedqa} & {\scriptsize\href{https://huggingface.co/datasets/qiaojin/PubMedQA}{\texttt{qiaojin/PubMedQA}}} & all & 1{,}000 &  & Choice (3) \\
+    \rowcolor{gray!10}MMLU~\cite{hendrycks2021measuringmassivemultitasklanguage} & {\scriptsize\href{https://huggingface.co/datasets/tasksource/mmlu}{\texttt{tasksource/mmlu}}} & test & 14{,}042 &  & Choice (4) \\
+    C-Eval~\cite{huang2023c} & {\scriptsize\href{https://huggingface.co/datasets/ceval/ceval-exam}{\texttt{ceval/ceval-exam}}} & test & 12{,}342 &  & Choice (4) \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Commonsense and reasoning}} \\
+    BIG-bench (MC)~\cite{srivastava2023beyond} & {\scriptsize\href{https://huggingface.co/datasets/tasksource/bigbench}{\texttt{tasksource/bigbench}}} & val. & 13{,}228 &  & Choice (2--118) \\
+    \rowcolor{gray!10}HellaSwag~\cite{zellers-etal-2019-hellaswag} & {\scriptsize\href{https://huggingface.co/datasets/Rowan/hellaswag}{\texttt{Rowan/hellaswag}}} & val. & 10{,}042 &  & Choice (4) \\
+    WinoGrande~\cite{sakaguchi2021winogrande} & {\scriptsize\href{https://huggingface.co/datasets/allenai/winogrande}{\texttt{allenai/winogrande}}} & val. & 1{,}267 &  & Choice (2) \\
+    \rowcolor{gray!10}ARC (E+C)~\cite{clark2018thinksolvedquestionanswering} & {\scriptsize\href{https://huggingface.co/datasets/allenai/ai2_arc}{\texttt{allenai/ai2\_arc}}} & test & 3{,}548 &  & Choice (3--5) \\
+    CommonsenseQA~\cite{talmor-etal-2019-commonsenseqa} & {\scriptsize\href{https://huggingface.co/datasets/tau/commonsense_qa}{\texttt{tau/commonsense\_qa}}} & val. & 1{,}221 &  & Choice (5) \\
+    \rowcolor{gray!10}$\alpha$NLI (ART)~\cite{Bhagavatula2020Abductive} & {\scriptsize\href{https://huggingface.co/datasets/allenai/art}{\texttt{allenai/art}}} & val. & 1{,}532 &  & Choice (2) \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Safety, moderation and legal}} \\
+    ToxiGen~\cite{hartvigsen-etal-2022-toxigen} & {\scriptsize\href{https://huggingface.co/datasets/toxigen/toxigen-data}{\texttt{toxigen/toxigen-data}}} & test & 940 &  & Noul + Score \\
+    \rowcolor{gray!10}OpenAI Moderation~\cite{markov2023holistic} & {\scriptsize\href{https://huggingface.co/datasets/mmathys/openai-moderation-api-evaluation}{\texttt{mmathys/openai-moderation-api-evaluation}}} & all & 1{,}680 &  & Noul $\times$8 \\
+    ToxicChat~\cite{lin-etal-2023-toxicchat} & {\scriptsize\href{https://huggingface.co/datasets/lmsys/toxic-chat}{\texttt{lmsys/toxic-chat}}} & test & 5{,}083 &  & Noul $\times$2 \\
+    \rowcolor{gray!10}Prompt Injections~\cite{deepset2023promptinjections} & {\scriptsize\href{https://huggingface.co/datasets/deepset/prompt-injections}{\texttt{deepset/prompt-injections}}} & test & 116 &  & Noul \\
+    AGB-DE~\cite{braun-matthes-2024-agb} & {\scriptsize\href{https://huggingface.co/datasets/d4br4/agb-de}{\texttt{d4br4/agb-de}}} & test & 755 &  & Noul \\
+    \rowcolor{gray!10}UNFAIR-ToS~\cite{chalkidis-etal-2021-lexglue} & {\scriptsize\href{https://huggingface.co/datasets/coastalcph/lex_glue}{\texttt{coastalcph/lex\_glue}}} & test & 1{,}607 &  & Noul $\times$8 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Rubric scoring}} \\
+    STS-B~\cite{cer-etal-2017-semeval} & {\scriptsize\href{https://huggingface.co/datasets/sentence-transformers/stsb}{\texttt{sentence-transformers/stsb}}} & test & 1{,}379 &  & Score (6) \\
+    \rowcolor{gray!10}SST-5~\cite{socher-etal-2013-recursive} & {\scriptsize\href{https://huggingface.co/datasets/SetFit/sst5}{\texttt{SetFit/sst5}}} & test & 2{,}210 &  & Score (5) \\
+    SummEval~\cite{fabbri2021summeval} & {\scriptsize\href{https://huggingface.co/datasets/mteb/summeval}{\texttt{mteb/summeval}}} & test & 1{,}600 &  & Score (5) $\times$4 \\
+    \rowcolor{gray!10}HelpSteer2~\cite{wang2024helpsteer2} & {\scriptsize\href{https://huggingface.co/datasets/nvidia/HelpSteer2}{\texttt{nvidia/HelpSteer2}}} & val. & 1{,}038 &  & Score (5) $\times$5 \\
+    \bottomrule
+\end{tabular}
+

@@ -1,0 +1,20 @@
+\begin{tabular}{l l c c c c}
+    \toprule
+    & & \multicolumn{3}{c}{Spearman $\rho\uparrow$} & \\
+    \cmidrule(lr){3-5}
+    Dataset & Dimension & Jev & Qwen3.8-27B & Gemma-4-E4B & MAE$\downarrow$ (Jev) \\
+    \midrule
+    STS-B & -- & 0.890 & \textbf{0.896} & 0.814 & 0.56 \\
+    \rowcolor{gray!10}SST-5 & -- & 0.851 & \textbf{0.857} & 0.779 & 0.50 \\
+    ToxiGen & Toxicity & \textbf{0.841} & 0.836 & 0.780 & 0.57 \\
+    \rowcolor{gray!10}SummEval & Coherence & 0.639 & \textbf{0.651} & 0.515 & 0.61 \\
+    \rowcolor{gray!10} & Consistency & \textbf{0.555} & 0.546 & 0.487 & 0.46 \\
+    \rowcolor{gray!10} & Fluency & \textbf{0.495} & 0.412 & 0.352 & 1.77 \\
+    \rowcolor{gray!10} & Relevance & 0.526 & \textbf{0.552} & 0.491 & 0.60 \\
+    HelpSteer2 & Helpfulness & 0.399 & \textbf{0.431} & 0.355 & 1.18 \\
+     & Correctness & 0.369 & \textbf{0.372} & 0.365 & 1.18 \\
+     & Coherence & 0.275 & \textbf{0.311} & 0.270 & 0.49 \\
+     & Complexity & 0.460 & \textbf{0.483} & 0.394 & 0.67 \\
+     & Verbosity & 0.558 & \textbf{0.617} & 0.541 & 0.53 \\
+    \bottomrule
+\end{tabular}

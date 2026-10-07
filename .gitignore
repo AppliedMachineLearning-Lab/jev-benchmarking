@@ -232,4 +232,7 @@ CLAUDE.md
 TODO.md
 
 # paper stuff (figures, tables, etc. -> will be tracked on overleaf)
-paper/
+paper/*
+
+# v1 version of the paper -> excluded from the gitignore above (is on arxiv anyways)
+!paper/arxiv_v1/

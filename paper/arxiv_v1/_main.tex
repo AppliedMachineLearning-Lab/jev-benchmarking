@@ -1,0 +1,436 @@
+\documentclass[table]{article}
+
+\usepackage{arxiv}
+
+\usepackage{amsmath}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{cleveref}       % smart cross-referencing
+\usepackage{graphicx}
+\usepackage[numbers, square, sort&compress]{natbib} %removed for biblatex
+\usepackage{doi} 
+
+% additional packages
+\usepackage{tikz}
+\usetikzlibrary{fadings}
+\usepackage{tcolorbox}
+% \tcbuselibrary{breakable}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{bbm}
+\usepackage{bm}
+\usepackage{tabularx}
+\usepackage{threeparttable}
+\usepackage{makecell}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{flushend}
+\usepackage{dirtytalk}
+\usepackage{xcolor}
+\usepackage{circuitikz}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+
+% tikz stuff
+\usetikzlibrary{arrows.meta,positioning,fit,shapes.geometric,calc}
+
+% ---- Uni Bonn colours-------
+\definecolor{ubblue}{HTML}{004E9F}   
+\definecolor{ubyellow}{HTML}{FCBA00} 
+\definecolor{ubgrey}{HTML}{909085}   
+
+% Red TODO markers must be resolved and removed before submission.
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+
+\title{Evaluating and Benchmarking the System One Model Jev}
+
+% Here you can change the date presented in the paper title
+%\date{September 9, 1985}
+% Or remove it
+\date{}
+
+\usepackage{authblk}
+\renewcommand\Authfont{\bfseries}
+\setlength{\affilsep}{0em}
+
+\author[1,2]{%
+	Tobias Deu{\ss}er\thanks{\texttt{tdeusser@uni-bonn.de}, ORCID-ID: 0000-0003-4685-0847}%
+}
+\author[1,2]{%
+	Lorenz Sparrenberg
+}
+\author[1,2,3]{%
+	Rafet Sifa
+}
+
+\affil[1]{University of Bonn, Bonn, Germany}
+\affil[2]{Lamarr-Institute for Machine Learning and Artificial Intelligence, Bonn, Germany}
+\affil[3]{Fraunhofer IAIS, Sankt Augustin, Germany}
+
+% Uncomment to override  the `A preprint' in the header
+\renewcommand{\headeright}{}
+\renewcommand{\undertitle}{}
+% \renewcommand{\undertitle}{An arxiv Preprint}
+\renewcommand{\shorttitle}{Evaluating and Benchmarking the System One Model Jev}
+
+%%% Add PDF metadata to help others organize their library
+%%% Once the PDF is generated, you can check the metadata with
+%%% $ pdfinfo template.pdf
+\hypersetup{
+pdftitle={Evaluating and Benchmarking the System One Model Jev},
+pdfsubject={cs.CL, cs.AI},
+pdfauthor={Tobias Deu{\ss}er, Lorenz Sparrenberg, Rafet Sifa},
+pdfkeywords={Jev, Benchmark, System One Model, Calibration, Selective Prediction, Evaluation Resource, Natural Language Processing},
+}
+
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Jev is a commercial ``System One'' model from TypeSafe AI that does not generate text: given a state and typed questions, it returns a choice from fixed options, a position on a rubric, or the probability that a statement is true, with probabilities the vendor describes as calibrated. Such models target small decisions in information access pipelines, such as routing queries, checking grounding, moderating content, or rating against a rubric. We evaluate Jev (\texttt{jev-1.13.0}) zero-shot on 37 datasets spanning classification, routing, natural language inference, reading comprehension, commonsense reasoning, moderation, legal clause analysis and rubric scoring, with one frozen template per dataset and full evaluation splits: 346{,}009 requests for under US\$10. For reference, we score Qwen3.8-27B and Gemma-4-E4B on identical requests via their exact next-token probabilities over the options. Jev reaches 95--99\% accuracy on IMDB, SST-2, HellaSwag and ARC and 86.7\% on Belebele across 122 languages. It beats Qwen on 27 of 37 datasets, with none of Qwen's nine leads outside the bootstrap intervals, and Gemma on all 37. All three models degrade on low-resource languages, fine-grained or noisy labels, and rubric-based quality judgments. Jev's choice probabilities are well calibrated and support selective prediction. Binary probabilities rank well but are poorly placed relative to a fixed 0.5 threshold; thresholds tuned on training data raise micro-F$_\text{1}$ on UNFAIR-ToS from 0.50 to 0.75. Jev answers MMLU's calculation-heavy questions more accurately than other MMLU questions (94\% vs.\ 91\%), whereas both open models, and all three on C-Eval, find them harder. Rotating the options leaves Jev's accuracy unchanged and withholding the question drops it to near chance, ruling out shallow memorization but not memorized question-answer pairs. We release the code, harness and all raw responses.
+\end{abstract}
+
+
+% keywords can be removed
+\keywords{Jev\and System One Model\and Benchmark\and Calibration\and Selective Prediction\and Evaluation Resource\and Natural Language Processing}
+
+
+\section{Introduction}
+
+Large language models (LLMs) are increasingly used not to write text but to make small, well-scoped decisions inside software and information access systems, such as routing a support request or a query to the right handler \cite{liu2025tickit}, flagging a harmful message \cite{inan2023llamaguardllmbasedinputoutput}, checking whether a claim is supported by a retrieved document \cite{tang-etal-2024-minicheck}, finding contradictions in written text \cite{deusser2023uncovering}, or rating a response against a rubric \cite{kim2024prometheus}. Using a generative/autoregressive model for such decisions is quite indirect. The decision has to be phrased as a prompt, the answer has to be parsed out of generated text, the model's probability for the answer is usually unavailable or unreliable, and every generated token is paid for (see \Cref{sec:open-models} for such an implementation).
+
+TypeSafe AI's Jev~\cite{typesafe2026jev} takes a different route. Borrowing the distinction between fast, intuitive ``System~1'' and slow, deliberate ``System~2'' thinking \cite{kahneman2011thinking}, it is marketed as a \emph{System One model}: it never generates text but answers typed questions about a given state with structured outputs, namely a choice from a set of options, a score on an ordered rubric, or the probability that a statement is true. All questions about one state are answered in parallel in a single request and the returned probabilities are meant to be calibrated. TypeSafe AI documents example use cases and a list of known failure modes in their documentation\footnote{\href{https://docs.typesafe.ai/model-jaggedness/jev-1.13}{\texttt{docs.typesafe.ai/model-jaggedness/jev-1.13}}, accessed 2026-09-29.} but, to our knowledge and at the time of writing, no systematic evaluation on public benchmarks exists. 
+
+
+This paper provides such an evaluation together with the resources needed to reuse it. Our contributions are:
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item A benchmark suite of 37 public datasets mapped onto Jev's three question primitives, covering seven task families and over 200 language varieties, with one frozen template per dataset.
+    \item An evaluation harness and all 346{,}009 raw responses, stored in a content-addressed cache so that every table and figure can be recomputed offline, and so that other models can be evaluated on identical requests; the harness includes a backend that scores open-weight LLMs this way (\Cref{sec:resource}).
+    \item A zero-shot evaluation on the full evaluation splits (346{,}009 requests), reporting task performance with bootstrap confidence intervals, calibration, selective prediction and cost.
+    \item A comparison with two open-weight LLMs, Qwen3.8-27B and Gemma-4-E4B, scored on identical requests through their exact option probabilities, which puts Jev's accuracy and calibration in context and serves as a control for its MMLU result.
+    \item An analysis of where Jev fails, compared against the vendor's own list of weak spots, including a steep gradient across languages and an unexplained result on MMLU mathematics, which we probe for signs of memorization.
+\end{itemize}
+
+
+\section{Related Work}
+
+\subsection{Zero-shot classification with pretrained models}
+Framing classification as natural language inference~\cite{yin2019zeroshot} and prompting generative LLMs~\cite{brown2020language} made it possible to solve many classification and multiple-choice tasks without task-specific training, a setting known as ``zero-shot''. Multi-task benchmark suites such as GLUE~\cite{wang-etal-2018-glue}, MMLU~\cite{hendrycks2021measuringmassivemultitasklanguage}, BIG-bench~\cite{srivastava2023beyond} and HELM~\cite{liang2023holistic} measure this ability across many tasks at once, and evaluation harnesses~\cite{biderman2026lessonstrenchesreproducibleevaluation} standardize how multiple-choice questions are posed and scored. Jev is evaluated in the same zero-shot regime, but its interface replaces prompting and answer parsing with typed questions.
+
+\subsection{Calibration and selective prediction}
+Modern neural networks are often miscalibrated \cite{guo2017calibration}, which also holds for many LLMs: while pretrained language models can be reasonably well calibrated \cite{kadavath2022languagemodelsmostlyknow}, instruction tuning and RLHF tend to degrade calibration \cite{openai2024gpt4technicalreport,tian-etal-2023-just}.
+For such a calibration, the expected calibration error (ECE)~\cite{naeini2015obtaining} and the Brier score~\cite{glenn1950verification} are standard summaries of calibration. Calibrated confidence enables selective classification, where a model abstains on uncertain inputs to trade coverage for accuracy~\cite{geifman2017selective}. Jev exposes probabilities and a confidence score for every answer, which makes both properties directly measurable.
+
+\subsection{LLMs as judges}
+LLMs are increasingly used to label and rate content, from relevance judgments for retrieval evaluation~\cite{faggioli2023perspectives,thomas2024preferences} to summary quality on SummEval~\cite{fabbri2021summeval,liu-etal-2023-g} and response helpfulness~\cite{wang2024helpsteer2}. Jev's Score primitive is designed for this kind of rubric-based judgment.
+
+\subsection{Contamination}
+Public benchmarks may have leaked into the training data of the models evaluated on them, which inflates reported performance~\cite{sainz-etal-2023-nlp}. Because Jev's training data are not public, we cannot rule out contamination, and we therefore look for indirect evidence of it (\Cref{sec:weak-spots}).
+
+
+\section{Methodology}
+
+\subsection{Jev and its question primitives}
+
+A Jev request consists of a \emph{state} (a string or a JSON object or array) and a map of named \emph{questions}~\cite{typesafe2026jev}. Each question is one of three primitives:
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item \textbf{Choice} selects one option from up to 255 options, each given as a key with an optional description. It returns the selected option, a probability for every option, and a confidence value derived from that distribution.
+    \item \textbf{Score} places the state on an ordered rubric of 2 to 10 described levels. It returns the probability of each level, the probability-weighted level (the \emph{score}) and a confidence value.
+    \item \textbf{Noul} asks a yes/no question and returns the probability that the answer is yes.
+\end{itemize}
+All questions in a request share the state but are answered independently. Instructions and state fields can be linked by referring to a field name in backticks. We pinned the model version \texttt{jev-1.13.0} for all requests. At the time of writing, Jev is priced at US\$0.042 per million input tokens (output tokens are free) and accepts up to 32k tokens for the state plus the longest question.
+
+\subsection{Benchmark suite}
+
+\Cref{tab:suite} lists the 37 datasets we evaluate Jev on. We started from a list of commonly used classification and multiple-choice datasets and extended it so that (i) all three primitives are exercised, including multi-question requests, (ii) the use cases Jev is marketed for (routing, guardrails, grounding checks, rubric scoring) are covered, and (iii) the datasets are small enough to be evaluated in full. All datasets were loaded from the Hugging Face Hub with the \texttt{datasets} library~\cite{lhoest-etal-2021-datasets}. We made the following adjustments:
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item Where test labels are not public (SST-2, HellaSwag, WinoGrande, CommonsenseQA, $\alpha$NLI, BoolQ), we evaluate on the validation split. SMS Spam, the OpenAI moderation set and PubMedQA's 1{,}000 expert-labeled questions are evaluated in full.
+    \item From BIG-bench~\cite{srivastava2023beyond} we keep the multiple-choice tasks, remove tasks tagged with mathematics, arithmetic, algebra, code, numerical responses, non-language inputs, tokenization or games in BIG-bench's keyword index, and remove three date- and number-heavy tasks. This follows TypeSafe AI's own advice to keep arithmetic in code~\cite{typesafe2026jev}. The result is 93 tasks, capped at 500 examples each (13{,}228 examples).
+    \item One SIB-200 configuration entry (\texttt{nqo\_Nkoo.zip}, a broken duplicate of the N'Ko configuration) cannot be loaded from Hugging Face and is skipped.
+\end{itemize}
+
+\begin{table}[t]
+\centering
+\caption{Benchmark suite: 37 datasets in seven categories, the split we evaluate, the number of evaluated examples $n$, the number of languages for multilingual datasets, and the Jev primitive used (number of options or levels in parentheses; $\times k$: $k$ questions per request).}
+\label{tab:suite}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{tables/benchmark_suite}
+\end{table}
+
+\subsection{Request construction}
+
+Every example in each dataset becomes exactly one request (identical examples yield identical requests, which are sent only once; see Table~\ref{tab:cost}). The example's fields form a JSON state with descriptive names (e.g.\ \texttt{premise} and \texttt{hypothesis}), and the instructions refer to these fields by name. We map tasks onto primitives as follows:
+\begin{itemize}[leftmargin=*,noitemsep]
+    \item \textbf{Classification} uses a Choice whose options are the dataset's labels, with one-sentence descriptions where a label name alone is ambiguous (e.g.\ for AG News~\cite{zhang2015character} topics or NLI relations). CLINC150 additionally has an explicit out-of-scope option.
+    \item \textbf{Multiple-choice questions} use a Choice whose options are the answer candidates, keyed A, B, C, \ldots\ (or AA, AB, \ldots\ beyond 26 options). We deliberately avoid numeric keys: in an early version, the key ``36'' coincided with the answer to ``which element has atomic number 36''.
+    \item \textbf{Binary detection} (spam, toxicity, prompt injection, void clauses, grounding) uses a Noul.
+    \item \textbf{Multi-label tasks} use one Noul per label in a single request: 28 for GoEmotions~\cite{demszky-etal-2020-goemotions} and 8 each for the OpenAI moderation~\cite{markov2023holistic} categories and UNFAIR-ToS~\cite{chalkidis-etal-2021-lexglue} clause types. Moderation categories come with the definitions of \cite{markov2023holistic}; for the UNFAIR-ToS clause types~\cite{chalkidis-etal-2021-lexglue} we wrote one-sentence descriptions.
+    \item \textbf{Ordinal tasks} use a Score with described levels, following the SemEval STS annotation guidelines for STS-B~\cite{cer-etal-2017-semeval}, and dimension and attribute definitions adapted from G-Eval for SummEval~\cite{liu-etal-2023-g} and from HelpSteer2~\cite{wang2024helpsteer2}. ToxiGen is posed as both a Noul (toxic or not) and a five-level Score in the same request.
+\end{itemize}
+We wrote one template per dataset, tested it on 20 examples from a training or validation split, and froze it before running the evaluation split. We did not do any prompt tuning on evaluation data and used no in-context examples. \Cref{fig:request} shows an example request.
+
+\begin{figure}[t]
+\centering
+\begin{tcolorbox}[colback=gray!5,colframe=gray!50,boxrule=0.4pt,left=4pt,right=4pt,top=2pt,bottom=2pt,width=0.92\linewidth]
+\scriptsize
+\begin{verbatim}
+{"model": "jev-1.13.0",
+ "state": {"text": "having a disability means you can get everything for free"},
+ "questions": {
+   "toxic":    {"type": "noul",
+                "instructions": "Is `text` toxic, offensive or hateful toward a group of people?"},
+   "toxicity": {"type": "score",
+                "instructions": "How offensive is `text` toward the group of people it mentions?",
+                "criteria": ["Benign: not offensive to anyone.", "Slightly offensive or insensitive.",
+                             "Moderately offensive.", "Very offensive.",
+                             "Extremely offensive: hateful or dehumanizing."]}}}
+\end{verbatim}
+\end{tcolorbox}
+\caption{A ToxiGen request: one state and two questions (a Noul and a five-level Score), answered in parallel.}
+\label{fig:request}
+\end{figure}
+
+\subsection{Metrics}
+
+For each dataset we report the metric customary for it as the primary metric: accuracy for most tasks; positive-class F$_\text{1}$ for imbalanced binary detection; macro-F$_\text{1}$ for GoEmotions~\cite{demszky-etal-2020-goemotions}; micro-F$_\text{1}$ for UNFAIR-ToS, following LexGLUE~\cite{chalkidis-etal-2021-lexglue}; mean AUPRC over categories for the OpenAI moderation set~\cite{markov2023holistic}; the mean of per-source balanced accuracies for LLM-AggreFact~\cite{tang-etal-2024-minicheck}; and Spearman correlation for Score tasks, computed per source document and then averaged for SummEval (``summary-level'', as in G-Eval~\cite{liu-etal-2023-g}). Choice predictions are the highest-probability option; Noul answers are thresholded at 0.5 unless stated otherwise, and we additionally report threshold-free AUROC and AUPRC. For four datasets we also report per-question thresholds chosen to maximize F$_\text{1}$ on 1{,}000 examples from a training or validation split (grid step 0.01) and applied unchanged to the evaluation split (\Cref{sec:calibration}).
+
+Calibration is measured with the ECE over 15 equal-width bins~\cite{naeini2015obtaining}, using the top-option probability for Choices and $P(\text{yes})$ for Nouls, and with the Brier score~\cite{glenn1950verification}. For selective prediction we rank examples by Jev's reported confidence and report accuracy on the most confident 80\% and 50\% of examples, as well as the area under the risk--coverage curve (AURC)~\cite{geifman2017selective}. All primary metrics come with 95\% percentile bootstrap confidence intervals over examples (500 resamples)~\cite{efron1994introduction}.
+
+\subsection{Execution}
+
+Requests were sent with an asynchronous client at up to 1{,}100 requests per minute with 32 concurrent connections from a single machine. The full evaluation took 5\,h\,15\,min. Of 346{,}010 requests, one (a BIG-bench item) exceeded the context limit and was rejected. All others were answered.
+
+\subsection{Open-weight reference models}
+\label{sec:open-models}
+
+To put Jev's numbers in context, we score two instruction-tuned open-weight LLMs on exactly the same requests: Qwen3.8-27B~\cite{qwen2026qwen38} (27.8B parameters) and Gemma-4-E4B~\cite{gemmateam2026gemma4technicalreport} (8.0B parameters, about 4B effective). Each question of a request is rendered as one chat prompt containing the state as JSON, the instruction, and the options, rubric levels or yes/no criteria, followed by an instruction to reply with the option code only. The questions of a request share the state but are answered independently, as in Jev. Every answer option receives a code that is a single token in the model's vocabulary: A, B, \ldots\ (two-letter codes such as AA, AB beyond 26 options), Yes/No for Nouls and digits for Score levels; codes that a tokenizer splits into several tokens are skipped. 
+
+One forward pass then yields the model's exact next-token distribution, which we restrict to the codes and renormalize, obtaining a probability for every option, just as Jev returns one. From these we derive the chosen option, the probability-weighted score of Score questions and, for comparability, a confidence value computed with the formula of Jev's documentation, $(K\,p_{\max}-1)/(K-1)$ for $K$ options. Thinking is disabled, no text is generated, and the prompts were frozen after a pilot on 20 training/validation examples per dataset. On the evaluation splits, the models place a median of 0.997 (Qwen) and 1.000 (Gemma) of their next-token probability on the valid codes, and at least 0.93 for 99\% of questions, so the renormalization discards little. 
+
+We used Hugging Face \texttt{transformers}~\cite{wolf-etal-2020-transformers} in bf16 on a GPU cluster, with Gemma on NVIDIA A40 GPUs and Qwen on NVIDIA A100 80\,GB GPUs. Prompts longer than the batch budget are processed in chunks that carry the model's cache, which gives the same result as a single pass. Unlike Jev, the open models also answered the one over-long BIG-bench item.
+
+
+\subsection{Publication of code \& responses}
+\label{sec:resource}
+
+Our repository, available at \href{https://github.com/AppliedMachineLearning-Lab/jev-benchmarking}{\texttt{github.com/AppliedMachineLearning-Lab/jev-benchmarking}}, contains: 
+
+\begin{enumerate}
+    \item The benchmark suite definition: dataset sources, splits, preprocessing and the frozen question template of every dataset.
+    \item The evaluation harness, an asynchronous client with rate limiting and a content-addressed cache keyed by the exact request, so that interrupted runs resume without paying twice.
+    \item The analysis scripts that regenerate every table and figure in this paper from the cache.
+\end{enumerate}
+
+We furthermore publish all responses of the three models on Zenodo, available at the DOI \href{https://doi.org/10.5281/zenodo.23039006}{\texttt{10.5281/zenodo.23039006}}. This makes three kinds of follow-up available to other researchers: recomputing or extending the analysis (for example other calibration metrics, per-language breakdowns, or thresholds tuned on training data); comparing other models against Jev on identical requests and templates, for which the harness provides a backend for open-weight LLMs (\Cref{sec:open-models}); and tracking Jev across versions, since the pinned \texttt{jev-1.13.0} responses serve as a fixed reference.
+
+\section{Experiments}
+
+\subsection{Overall results}
+
+\begin{table}[p]
+\centering
+\caption{Main results on the evaluation splits. Score: primary metric (see text); 95\% bootstrap confidence interval; ECE of the first Choice or Noul question (-- for Score-only tasks).}
+\label{tab:results}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{tables/main_results}
+\end{table}
+
+\Cref{tab:results} summarizes our overall results. As seen there, Jev is strongest where a decision rests on the overall gist of a short text in a widely spoken language. Binary sentiment (IMDB 96.5\%, SST-2 96.4\%, Rotten Tomatoes 93.3\%), language identification (99.6\%), commonsense multiple choice (HellaSwag 95.5\%, WinoGrande 91.4\%, CommonsenseQA 88.2\%), science questions (ARC-Easy 99.3\%, ARC-Challenge 97.7\%) and passage-based yes/no questions (BoolQ 91.3\%) are all solved at a high level, without examples and with a single generic template per dataset.
+
+\subsubsection{Routing}
+On intent routing, Jev reaches 89.5\% on CLINC150 with 151 options in a single Choice and 79.7\% on Banking77, whose 77 intents are known to be fine-grained and partly overlapping. On CLINC150, in-scope accuracy is 92.1\%, and the explicit out-of-scope option recovers 77.6\% of out-of-scope requests at a precision of 94.1\%.
+
+\subsubsection{Inference and grounding}
+On ANLI, accuracy falls from 81.4\% (round 1) to 74.0\% (round 2) and 67.7\% (round 3), mirroring the increasing adversarial difficulty of the rounds. PAWS paraphrase detection reaches 85.0\%. On LLM-AggreFact, the grounding check most directly relevant to retrieval-augmented generation, the mean balanced accuracy across its eleven sources is 78.6\%, ranging from 59.8\% (ExpertQA) to 90.6\% (Reveal).
+
+\subsubsection{Moderation and legal text}
+Jev ranks harmful content well: AUROC is 0.949 on ToxiGen, 0.989 (toxicity) and 0.994 (jailbreaking) on ToxicChat, and 0.972 on average across the eight OpenAI moderation categories. The per-category AUPRC ranges from 0.93 (sexual) and 0.91 (self-harm) down to 0.53 (harassment). The fixed 0.5 threshold, however, often turns this good ranking into mediocre decisions (\Cref{sec:calibration}). Prompt-injection detection is the clearest case: precision is perfect but recall is only 50\%, although the AUROC is 0.982. The hardest dataset in the suite is AGB-DE, where Jev has to decide whether a clause from German consumer terms and conditions is void under German law. With 4.9\% positives, Jev reaches an F$_\text{1}$ of 0.204 and an AUROC of 0.784. This is a legal judgment that requires domain knowledge rather than a snap decision.
+
+\subsubsection{Weak spots}
+The lowest accuracies occur on Emotion (58.5\%), whose labels are derived from hashtags and are noisy, on SST-5's five-way sentiment (57.9\%, where adjacent classes are notoriously hard to separate), on Financial PhraseBank (73.0\%) and on low-resource NLI (AfriXNLI 64.0\%; \Cref{sec:multilingual}). Within BIG-bench, accuracy ranges from 100\% on several tasks (e.g.\ cause-and-effect) to 32.2\% on \texttt{real\_or\_fake\_text} (locating where a document switches from human- to machine-written text) and 35.0\% on \texttt{minute\_mysteries\_qa} (solving short mystery stories), both of which need long inputs to be read closely or reasoned over in several steps, a regime TypeSafe AI explicitly flags as difficult~\cite{typesafe2026jev}.
+
+\subsection{Comparison with open-weight LLMs}
+\label{sec:comparison}
+
+\begin{table}[p]
+\centering
+\caption{Jev and the two open-weight reference models on identical requests: primary metric (best per dataset in bold) and ECE of the first Choice or Noul question (-- for Score-only tasks).}
+\label{tab:comparison}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\input{tables/comparison}
+\end{table}
+
+\Cref{tab:comparison} compares Jev with the two open-weight models on the primary metric of every dataset. Jev scores higher than Qwen3.8-27B on 27 datasets and lower on 9, with one tie; 11 of Jev's leads have non-overlapping 95\% bootstrap intervals, none of Qwen's does. Jev's largest margins over Qwen are on WinoGrande (+15.1 points), MMLU (+10.1), Belebele (+8.9) and BIG-bench (+6.4), and on AGB-DE (+20.4 points of F$_\text{1}$), where Qwen never predicts a void clause at the 0.5 threshold (\Cref{tab:thresholds}). Qwen's leads are small, at most 1.2 points on six datasets, except on UNFAIR-ToS (+8.3), HelpSteer2 (+3.1) and the 116-example prompt-injection set (+2.6). 
+
+Gemma-4-E4B is below Jev on all 37 datasets, 31 of them with non-overlapping intervals; the gap is smallest on sentiment and language identification (1--2 points) and largest on ANLI, CLINC150, MMLU, WinoGrande and C-Eval (20--30 points). Because Jev's size, architecture and training data are not public, the comparison places Jev relative to two points on the open-model scale; it does not attribute the differences to any particular property of Jev.
+
+\subsection{Calibration and selective prediction}
+\label{sec:calibration}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/reliability_models}
+\caption{Pooled reliability diagrams for Jev and the two open-weight models (15 bins; marker area proportional to the number of answers). Left: top-option probability vs.\ accuracy for all Choice questions. Middle and right: $P(\text{yes})$ vs.\ the observed frequency of yes, for single Noul questions and for multi-label requests with one Noul per label.}
+\label{fig:reliability}
+\end{figure}
+
+On the topic of calibration, \Cref{fig:reliability} shows that Jev's three kinds of probability behave differently, and how they compare with the probabilities of the open-weight models. Our observations here are:
+
+\textbf{Choice probabilities are well calibrated.} Pooled over 22 Choice datasets and 279{,}925 answers, the ECE is 0.028. Because three large datasets (Belebele, SIB-200 and IMDB) contribute 63\% of the pooled answers, we also summarize per dataset: the median per-dataset ECE is likewise 0.028, while the unweighted mean is 0.061. The ECE is at most 0.03 for 11 of the 22 datasets and at most 0.05 for 14 (\Cref{tab:calibration} in the appendix). Where there is miscalibration, it is almost always overconfidence: the mean top-option probability exceeds accuracy on 20 of the 22 datasets. Miscalibration is concentrated on the datasets where accuracy is low (Spearman $\rho=-0.83$ between accuracy and ECE), with Emotion (ECE 0.279) and AfriXNLI (0.165) as the extremes. Qwen's pooled Choice probabilities are less well calibrated (ECE 0.063), mainly because of the large multilingual datasets, and Gemma's are strongly overconfident (0.208; mean top-option probability 0.936 at 72.8\% accuracy). Averaged over the 33 datasets with a Choice or Noul question (\Cref{tab:comparison}), Jev (0.074) and Qwen (0.075) are on par, and both are far better calibrated than Gemma (0.184).
+
+\textbf{Single Noul probabilities are slightly under-confident.} Over eight binary datasets, the mean predicted $P(\text{yes})$ is 0.465 against an observed yes-rate of 0.518, and the reliability curve lies above the diagonal (ECE 0.052). Positives therefore frequently receive probabilities below 0.5, which explains the recall deficits reported above despite high AUROC. The open models are further from calibrated here (ECE 0.113 for Qwen, whose mean $P(\text{yes})$ of 0.405 is even more under-confident, and 0.123 for Gemma).
+
+\textbf{Multi-label Noul probabilities over-predict yes.} When many labels are queried at once, most of them rare, the mean $P(\text{yes})$ is 0.209 against an observed rate of 0.041 (ECE 0.168). Because each Noul is answered in isolation, Jev has no notion that only one or two of 28 emotions usually apply. Ranking remains good: the mean per-label AUROC is 0.873 on GoEmotions and 0.994 on UNFAIR-ToS. Threshold-based metrics, however, suffer (macro-F$_\text{1}$ 0.243 and micro-F$_\text{1}$ 0.499, respectively). All three models over-predict yes in this setting; Qwen is the best calibrated of the three (ECE 0.119, against 0.168 for Jev and 0.161 for Gemma).
+
+\begin{table}[t]
+\centering
+\caption{F$_\text{1}$ with the fixed 0.5 threshold vs.\ per-question thresholds tuned on 1{,}000 training/validation examples and applied unchanged to the evaluation split, for each model (thresholds tuned on that model's own answers).}
+\label{tab:thresholds}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{tables/thresholds}
+\end{table}
+
+\textbf{Tuned thresholds recover much of the gap.} The vendor describes thresholds as application-specific~\cite{typesafe2026jev}. \Cref{tab:thresholds} shows what choosing them on training data achieves. For multi-label requests the gains are large: micro-F$_\text{1}$ rises from 0.499 to 0.748 on UNFAIR-ToS and macro-F$_\text{1}$ from 0.243 to 0.353 on GoEmotions. The tuned thresholds are mostly high (median 0.86 over the 28 GoEmotions labels), consistent with the over-prediction in \Cref{fig:reliability}. For ToxicChat, the jailbreak threshold rises to 0.85 and F$_\text{1}$ improves from 0.717 to 0.833, while toxicity barely changes. AGB-DE does not improve at all: 0.5 is already the best threshold on the training sample, so its low F$_\text{1}$ reflects weak separation of void and valid clauses (AUROC 0.784), not a misplaced threshold. Tuning helps the open models in the same way: Qwen's micro-F$_\text{1}$ on UNFAIR-ToS rises from 0.582 to 0.757 and Gemma's from 0.302 to 0.510. Tuned thresholds do not always transfer from 1{,}000 training examples, however: Qwen's jailbreak F$_\text{1}$ drops slightly (0.743 to 0.726). On AGB-DE, Qwen predicts no void clause at 0.5 (F$_\text{1}$ 0.000) and reaches 0.179 with a tuned threshold.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/selective}
+\caption{Selective prediction: accuracy on the most confident fraction of examples (ranked by Jev's confidence) as a function of coverage, for eight Choice datasets.}
+\label{fig:selective}
+\end{figure}
+
+\textbf{Confidence is useful for routing decisions.} \Cref{fig:selective} shows that accuracy rises steadily as the least confident answers are withheld. At 50\% coverage, accuracy increases from 79.7\% to 96.3\% on Banking77, from 81.5\% to 98.2\% on SIB-200, from 73.9\% to 86.9\% on ANLI and from 58.5\% to 73.3\% on Emotion. For applications, this supports the confidence-gated pattern the vendor advocates: act automatically on confident answers and route the rest to a human or a larger model.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/selective_models}
+\caption{Selective prediction for Jev and the two open-weight models on four datasets; each model's answers are ranked by its own confidence.}
+\label{fig:selective-models}
+\end{figure}
+
+The open models' confidence is informative as well (\Cref{fig:selective-models}). At 50\% coverage, Qwen reaches 94.5\% on Banking77, 88.0\% on ANLI, 97.6\% on MMLU and 97.7\% on Belebele, close to Jev's 96.3\%, 86.9\%, 98.1\% and 98.7\%. Gemma's confidence separates correct from incorrect answers less well; on ANLI, its most confident half reaches only 63.2\%.
+
+\subsection{Rubric scoring}
+
+\begin{table}[t]
+\centering
+\caption{Score questions: Spearman $\rho$ between each model's probability-weighted score and the gold ratings (summary-level for SummEval; best in bold), and Jev's mean absolute error in rubric levels.}
+\label{tab:score}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{tables/score_heads}
+\end{table}
+
+\Cref{tab:score} reports the Score results. When the rubric describes a property of the text itself, the probability-weighted score correlates strongly with human ratings: $\rho=0.890$ for STS-B similarity, 0.851 for SST-5 sentiment and 0.841 for ToxiGen's offensiveness ratings. Treated as an ordinal scale, SST-5 is thus solved considerably better than its 57.9\% five-way accuracy suggests. Judging generated text is harder. On SummEval, the summary-level Spearman correlation averages 0.554 across the four dimensions, best for coherence (0.639) and worst for fluency (0.495, where Jev also rates systematically lower than the experts; MAE 1.77 levels). On HelpSteer2, correlations range from 0.275 (coherence) to 0.558 (verbosity), and helpfulness and correctness, the attributes that require verifying the content of a response, correlate least with human ratings (0.399 and 0.369). Rubric scoring is the one area where Qwen is on par with or slightly ahead of Jev: its correlation is higher on 9 of the 12 dimensions, mostly by small margins, while Jev leads on ToxiGen and on SummEval consistency and fluency. Gemma trails both on every dimension.
+
+\subsection{Multilinguality}
+\label{sec:multilingual}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.62\linewidth]{figures/multilingual}
+\caption{Per-language accuracy on Belebele and SIB-200 for the 117 language varieties in both datasets (both built on FLORES-200 sentences). The dashed line is the diagonal.}
+\label{fig:multilingual}
+\end{figure}
+
+TypeSafe AI states that English is Jev's primary language~\cite{typesafe2026jev}. On Belebele, accuracy is 97.2\% for English, and the median over 122 language varieties is 91.1\%: 71 varieties reach at least 90\%, while 10 fall below 70\%, down to 37.4\% for Nigerian Fulfulde. SIB-200 shows the same pattern, from 91--92\% for the best languages to near chance (19.6\%, with seven classes) for Santali in Ol Chiki script. On AfriXNLI, English (90.5\%) and French (82.7\%) are far ahead of the 16 African languages (33.8--70.3\%). \Cref{fig:multilingual} shows that performance per language is consistent across tasks (Spearman $\rho=0.69$ between Belebele and SIB-200 accuracy). The degradation therefore reflects the language rather than the task. Among the languages in \Cref{fig:multilingual}, the weakest are low-resource languages written in Latin script, so the script alone does not explain the gap; the very lowest SIB-200 results, however, occur for languages in scripts such as Ol Chiki, N'Ko and Tifinagh.
+
+\subsection{Documented weak spots and an unexplained MMLU result}
+\label{sec:weak-spots}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/subjects}
+\caption{Per-subject accuracy on C-Eval and MMLU, split into subjects that mostly require calculation (mathematics, physics, chemistry, statistics, accounting, formal logic) and all others.}
+\label{fig:subjects}
+\end{figure}
+
+TypeSafe AI lists arithmetic and numeric precision among Jev's weaknesses~\cite{typesafe2026jev}, and Jev produces no intermediate reasoning. We therefore expected calculation-heavy exam subjects to be among its weakest. On C-Eval this holds: calculation-heavy subjects have a lower median and a much wider spread (\Cref{fig:subjects}), with accuracies of 59.6\% in high-school mathematics, 69.9\% in advanced mathematics and 72.9\% in probability and statistics. On MMLU, however, calculation-heavy subjects are, if anything, \emph{easier} than the rest: 96.0\% in abstract algebra, 96.0\% in college mathematics, 94.8\% in high-school mathematics and 99.0\% in college physics. For a model that answers in a single step without generating a derivation, such accuracy on multi-step calculation questions is hard to reconcile with the vendor's own description, and it raises the question of whether MMLU questions were seen during training~\cite{sainz-etal-2023-nlp}.
+
+Two other explanations deserve mention. C-Eval is in Chinese and Jev's primary language is English, but a uniform language penalty would lower both groups of subjects, not reverse their order. And the two benchmarks' calculation-heavy subjects might differ in difficulty or format. The open-weight models provide a control for this: for both, MMLU's calculation-heavy subjects are clearly harder than its other subjects (Qwen 74.7\% vs.\ 83.0\%, Gemma 54.6\% vs.\ 69.8\%; \Cref{tab:probes}), as are C-Eval's for all three models. Jev is the only model for which the calculation-heavy MMLU subjects are easier (94.3\% vs.\ 91.3\%).
+
+\begin{table}[t]
+\centering
+\caption{Calculation-heavy vs.\ other subjects of MMLU and C-Eval for each model: accuracy with the original requests, and on the calculation-heavy subjects with the answer options rotated so that every option changes its letter, and with the question withheld (only the subject and the options are shown). Chance is 0.25.}
+\label{tab:probes}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{tables/probes}
+\end{table}
+
+To probe this, we re-ran the calculation-heavy subjects under two modified conditions (\Cref{tab:probes}). First, we rotated the answer options so that every option moves to a different letter. If Jev had memorized answer positions, accuracy would drop, but it stays at 94.3\%. Second, we withheld the question and showed only the subject and the four options, a known test of whether answers can be inferred from the options alone~\cite{balepur-etal-2024-artifacts}. On MMLU, accuracy then falls to 31.5\%, close to chance and \emph{below} the 37.3\% reached on the C-Eval control. The open models behave the same way under both probes: rotating the options leaves their accuracy unchanged (Qwen 74.4\%, Gemma 55.1\%), and withholding the question drops it to 30.4--35.1\% on MMLU and 30.7--39.9\% on C-Eval. So neither memorized answer positions nor memorized option sets explain Jev's MMLU results. 
+These probes cannot, however, distinguish memorization of question-answer pairs from a genuine ability to solve these questions in a single step. Perturbing the questions themselves, for example by changing the numbers in calculation problems, would be the decisive test and is left to future work. Taken together, the open models show that the calculation-heavy MMLU subjects are not intrinsically easy, and the probes rule out shallow memorization, which makes an effect specific to Jev and MMLU, such as training exposure to MMLU questions, the most plausible explanation; it cannot be confirmed without access to Jev's training data. Until then, we treat the MMLU result, and by extension results on other long-established English benchmarks, with caution.
+
+\subsection{Cost and throughput}
+
+\begin{table}[t]
+\centering
+\caption{Requests, input tokens, cost and mean client-side latency per request (at 32 concurrent requests) for the evaluation run, by category. Requests counts unique requests sent during the evaluation run. Identical items (1,911 duplicates across 17 datasets) are sent once and scored for every occurrence; 4 items had already been answered in the development pilot and 1 over-long BIG-bench item was rejected.}
+\label{tab:cost}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{tables/cost}
+\end{table}
+
+The main evaluation consumed 217.9 million input tokens (630 per request on average, including all questions and option descriptions) and cost US\$9.15 (\Cref{tab:cost}). The mean latency per request was 0.36\,s, and throughput was limited by the rate limit rather than by the service. Multi-question requests cost little extra: a GoEmotions request with 28 Noul questions used 765 input tokens on average, compared with 559 for a single-question text-classification request. Including the development pilot (US\$0.01) and the additional analyses in \Cref{tab:thresholds,tab:probes} (US\$0.23), the entire study cost US\$9.40. For comparison, scoring the evaluation splits with the open-weight models took 6.4 A40 GPU-hours for Gemma-4-E4B (126M prompt tokens) and 17.4 A100 GPU-hours for Qwen3.8-27B (135M prompt tokens) on a GPU cluster. These figures depend on hardware and implementation and are not directly comparable with API prices.
+
+
+\section{Limitations}
+
+We evaluate one prompt template per dataset without tuning. Other phrasings could change results, in either direction, and some of our weaker results (e.g.\ AGB-DE, HelpSteer2) may partly reflect our wording. Our reference points are two open-weight models scored with the same prompts, which were written for Jev rather than tuned for these models, and scored in a single forward pass without thinking. Allowing these reasoning LLMs to reason before answering would likely raise their accuracy at a higher cost. Generative proprietary models, which would typically answer in text rather than through option probabilities, are not included, and comparisons with published results remain complicated by differing prompts, splits and in-context examples. 
+
+Binary decisions use a fixed 0.5 threshold except in \Cref{tab:thresholds}, where thresholds are tuned on only 1{,}000 training examples per dataset. Our memorization probes cover only two shallow forms of memorization; they cannot detect memorized question-answer pairs. Several datasets are evaluated on validation rather than test splits because test labels are not public. 
+
+We ran each request once and did not measure run-to-run variance. Latency was measured client-side and includes network time. The suite contains no relevance-judgment task, although Jev's Score primitive is a natural fit for graded relevance labels. Finally, the results refer to \texttt{jev-1.13.0}; TypeSafe AI's aliases (\texttt{jev-latest}) will likely move to newer versions.
+
+
+\section{Conclusion}
+
+Jev delivers what its System One positioning promises on a wide range of short, well-scoped decisions: high zero-shot accuracy on sentiment, topic, intent and commonsense tasks, well-calibrated choice probabilities, confidence scores that support selective prediction, and very low cost. Against two open-weight LLMs scored on identical requests, Jev is ahead of Qwen3.8-27B on most datasets and of Gemma-4-E4B on all, and its calibration matches Qwen's when averaged per dataset. 
+
+Our evaluation of 37 datasets and 346{,}009 requests also shows its limits. Performance drops sharply for low-resource languages, fine-grained or noisy label sets, legal judgments and rubric-based assessment of generated text. Binary probabilities need application-specific thresholds, especially when many labels are queried at once, and thresholds tuned on a small training sample recover much of the resulting gap. The unexpectedly strong results on MMLU mathematics, which neither open model shows, are not explained by memorized answer positions or option artifacts. We release\footnote{\texttt{\href{https://github.com/AppliedMachineLearning-Lab/jev-benchmarking}{github.com/AppliedMachineLearning-Lab/jev-benchmarking}}} the suite, the harness and all raw responses so that every number can be recomputed and other typed decision models, as well as generative LLMs, can be compared on identical requests.
+
+\section*{Acknowledgments}
+
+This research has been partially funded by the Federal Ministry of Education and Research of Germany and the state of North-Rhine Westphalia as part of the Lamarr-Institute for Machine Learning and Artificial Intelligence.
+
+Computations of the responses of Qwen3.8-27B and Gemma-4-E4B were carried out on Marvin\footnote{\texttt{\href{https://www.hpc.uni-bonn.de/en/systems/marvin}{hpc.uni-bonn.de/en/systems/marvin}}}, an HPC cluster at the University of Bonn.
+
+For this paper, Anthropic Claude Opus 5.5 \cite{anthropic2026opus55} was employed to assist in refining and improving the text throughout all sections of this paper. This model was also used to help write the code for this paper, which is available at \texttt{\href{https://github.com/AppliedMachineLearning-Lab/jev-benchmarking}{github.com/AppliedMachineLearning-Lab/jev-benchmarking}}. The authors retain full responsibility for the accuracy, integrity, and originality of the work.
+
+
+
+\bibliographystyle{unsrtnat}
+\bibliography{bib}
+
+\appendix
+\section{Calibration and selective prediction per dataset}
+
+\begin{table}[h]
+\centering
+\caption{Choice datasets: accuracy, ECE of the top-option probability, accuracy on the 80\% and 50\% most confident examples (ranked by Jev's confidence), and area under the risk--coverage curve.}
+\label{tab:calibration}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\input{tables/calibration}
+\end{table}
+
+
+
+\end{document}

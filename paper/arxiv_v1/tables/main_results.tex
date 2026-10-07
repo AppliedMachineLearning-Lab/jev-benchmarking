@@ -1,0 +1,56 @@
+\begin{tabular}{l r l c c c}
+    \toprule
+    Dataset & $n$ & Metric & Score$\uparrow$ & 95\% CI & ECE$\downarrow$ \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Text classification}} \\
+    AG News & 7{,}600 & Acc. & 0.885 & [0.878, 0.891] & 0.077 \\
+    \rowcolor{gray!10}IMDB & 25{,}000 & Acc. & 0.965 & [0.963, 0.967] & 0.019 \\
+    Rotten Tomatoes & 1{,}066 & Acc. & 0.933 & [0.917, 0.947] & 0.038 \\
+    \rowcolor{gray!10}SST-2 & 872 & Acc. & 0.964 & [0.951, 0.975] & 0.015 \\
+    Emotion & 2{,}000 & Acc. & 0.585 & [0.563, 0.605] & 0.279 \\
+    \rowcolor{gray!10}Financial PhraseBank & 970 & Acc. & 0.730 & [0.699, 0.756] & 0.138 \\
+    SMS Spam & 5{,}574 & F$_\text{1}$ & 0.938 & [0.924, 0.950] & 0.033 \\
+    \rowcolor{gray!10}Language ID & 10{,}000 & Acc. & 0.996 & [0.995, 0.997] & 0.003 \\
+    GoEmotions & 5{,}427 & Macro-F$_\text{1}$ & 0.243 & [0.236, 0.249] & 0.176 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Intent and topic routing}} \\
+    Banking77 & 3{,}076 & Acc. & 0.797 & [0.782, 0.812] & 0.087 \\
+    \rowcolor{gray!10}CLINC150 & 5{,}500 & Acc. & 0.895 & [0.885, 0.902] & 0.025 \\
+    SIB-200 & 41{,}820 & Acc. & 0.815 & [0.812, 0.819] & 0.045 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{NLI, paraphrase and grounding}} \\
+    ANLI & 3{,}200 & Acc. & 0.739 & [0.725, 0.754] & 0.102 \\
+    \rowcolor{gray!10}AfriXNLI & 10{,}800 & Acc. & 0.640 & [0.631, 0.650] & 0.165 \\
+    PAWS & 8{,}000 & Acc. & 0.850 & [0.842, 0.857] & 0.040 \\
+    \rowcolor{gray!10}LLM-AggreFact & 29{,}320 & Bal. Acc. & 0.786 & [0.776, 0.796] & 0.128 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Reading comprehension and knowledge}} \\
+    BoolQ & 3{,}270 & Acc. & 0.913 & [0.904, 0.922] & 0.043 \\
+    \rowcolor{gray!10}Belebele & 109{,}800 & Acc. & 0.867 & [0.865, 0.869] & 0.015 \\
+    PubMedQA & 1{,}000 & Acc. & 0.787 & [0.762, 0.812] & 0.129 \\
+    \rowcolor{gray!10}MMLU & 14{,}042 & Acc. & 0.918 & [0.913, 0.923] & 0.025 \\
+    C-Eval & 12{,}342 & Acc. & 0.839 & [0.832, 0.846] & 0.014 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Commonsense and reasoning}} \\
+    BIG-bench (MC) & 13{,}227 & Acc. & 0.814 & [0.808, 0.821] & 0.026 \\
+    \rowcolor{gray!10}HellaSwag & 10{,}042 & Acc. & 0.955 & [0.951, 0.959] & 0.019 \\
+    WinoGrande & 1{,}267 & Acc. & 0.914 & [0.899, 0.930] & 0.025 \\
+    \rowcolor{gray!10}ARC (E+C) & 3{,}548 & Acc. & 0.988 & [0.984, 0.991] & 0.005 \\
+    CommonsenseQA & 1{,}221 & Acc. & 0.882 & [0.864, 0.900] & 0.031 \\
+    \rowcolor{gray!10}$\alpha$NLI (ART) & 1{,}532 & Acc. & 0.839 & [0.819, 0.858] & 0.065 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Safety, moderation and legal}} \\
+    ToxiGen & 940 & Acc. (toxic) & 0.878 & [0.857, 0.898] & 0.046 \\
+    \rowcolor{gray!10}OpenAI Moderation & 1{,}680 & Mean AUPRC & 0.717 & [0.675, 0.759] & 0.036 \\
+    ToxicChat & 5{,}083 & F$_\text{1}$ (toxic) & 0.786 & [0.753, 0.821] & 0.016 \\
+    \rowcolor{gray!10}Prompt Injections & 116 & Acc. & 0.741 & [0.664, 0.828] & 0.236 \\
+    AGB-DE & 755 & F$_\text{1}$ & 0.204 & [0.122, 0.282] & 0.264 \\
+    \rowcolor{gray!10}UNFAIR-ToS & 1{,}607 & Micro-F$_\text{1}$ & 0.499 & [0.449, 0.544] & 0.088 \\
+    \midrule
+    \multicolumn{6}{l}{\textit{Rubric scoring}} \\
+    STS-B & 1{,}379 & Spearman $\rho$ & 0.890 & [0.879, 0.901] & -- \\
+    \rowcolor{gray!10}SST-5 & 2{,}210 & Acc. & 0.579 & [0.560, 0.599] & -- \\
+    SummEval & 1{,}600 & Mean $\rho$ (summary-level) & 0.554 & [0.523, 0.571] & -- \\
+    \rowcolor{gray!10}HelpSteer2 & 1{,}038 & Mean $\rho$ & 0.412 & [0.380, 0.444] & -- \\
+    \bottomrule
+\end{tabular}

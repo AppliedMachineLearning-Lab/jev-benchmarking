@@ -1,0 +1,15 @@
+\begin{tabular}{l l c c c c c c }
+    \toprule
+    & & \multicolumn{2}{c}{Jev} & \multicolumn{2}{c}{Qwen3.8-27B} & \multicolumn{2}{c}{Gemma-4-E4B} \\
+    \cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+    Dataset & Metric & 0.5 & tuned & 0.5 & tuned & 0.5 & tuned \\
+    \midrule
+    GoEmotions & Macro-F$_\text{1}$ & 0.243 & 0.353 & 0.255 & 0.323 & 0.211 & 0.267 \\
+     & Micro-F$_\text{1}$ & 0.239 & 0.387 & 0.236 & 0.317 & 0.207 & 0.268 \\
+    \rowcolor{gray!10}UNFAIR-ToS & Micro-F$_\text{1}$ & 0.499 & 0.748 & 0.582 & 0.757 & 0.302 & 0.510 \\
+    \rowcolor{gray!10} & Macro-F$_\text{1}$ & 0.577 & 0.739 & 0.682 & 0.768 & 0.492 & 0.614 \\
+    AGB-DE & F$_\text{1}$ & 0.204 & 0.204 & 0.000 & 0.179 & 0.066 & 0.142 \\
+    \rowcolor{gray!10}ToxicChat & F$_\text{1}$ (toxicity) & 0.786 & 0.793 & 0.779 & 0.793 & 0.703 & 0.735 \\
+    \rowcolor{gray!10} & F$_\text{1}$ (jailbreaking) & 0.717 & 0.833 & 0.743 & 0.726 & 0.542 & 0.680 \\
+    \bottomrule
+\end{tabular}

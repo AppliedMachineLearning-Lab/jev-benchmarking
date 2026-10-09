@@ -5,6 +5,27 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+
+
+def _load_env_files(root: Path) -> None:
+    """Read `KEY=value` lines from `.env` and then `.env.local` in the repo root (both git-ignored).
+    Variables already set in the shell win; `.env.local` overrides `.env`. No dependency needed."""
+    from_files: dict[str, str] = {}
+    for name in (".env", ".env.local"):
+        path = root / name
+        if not path.is_file():
+            continue
+        for line in path.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.removeprefix("export ").split("=", 1)
+            from_files[key.strip()] = value.strip().strip("'\"")
+    for key, value in from_files.items():
+        os.environ.setdefault(key, value)
+
+
+_load_env_files(ROOT)
 CACHE_DB = Path(os.environ.get("JEV_CACHE_DB", ROOT / "cache" / "responses.db"))  # Jev responses
 RESULTS_DIR = ROOT / "results"
 

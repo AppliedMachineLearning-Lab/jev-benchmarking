@@ -65,7 +65,6 @@ def summarize(episodes: list[dict]) -> dict:
     }
     if "exact" in full:  # Blackjack: reward and exact-value metrics replace the expert comparison
         core["mean_reward"] = full["mean_reward"]
-        core["optimal_action_rate"] = full["exact"]["optimal_action_rate"]
         core["mean_regret_per_decision"] = full["exact"]["mean_regret_per_decision"]
         core["success_estimate_mae_vs_exact"] = full["exact"].get("success_vs_exact_p_win", {}).get("mae")
     core = {k: v for k, v in core.items() if v is not None}  # e.g. no success estimates unless asked
@@ -117,8 +116,11 @@ def _summarize_all(episodes: list[dict]) -> dict:
     top = np.array([max(s["probs"].values()) for s in steps]) if steps else np.array([])
     out["mean_top_action_prob"] = float(top.mean()) if len(top) else math.nan
 
-    # ALFWorld: agreement with the handcoded expert, and calibration of the top action probability
-    # against "the chosen command is the expert's".
+    # Agreement with the reference action (ALFWorld: handcoded expert; Blackjack: exact optimal action), and
+    # calibration of the top action probability against "the chosen action is the reference".
+    for s in steps:
+        if "best" in s["oracle"] and not s["oracle"].get("expert"):
+            s["oracle"]["expert"] = s["oracle"]["best"]
     expert = [(max(s["probs"].values()), s["action"] == s["oracle"]["expert"]) for s in steps if s["oracle"].get("expert")]
     if expert:
         p, y = map(np.array, zip(*expert))

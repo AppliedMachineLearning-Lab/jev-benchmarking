@@ -1,39 +1,41 @@
-"""Blackjack with exact values: the one sequential task where the true probabilities are known.
+"""Blackjack on RLCard's implementation, with exact action values computed alongside.
 
-Rules (stated in every request): cards are drawn with replacement (an infinite deck), so the cards seen so
-far say nothing about the next one. The player sees their cards and the dealer's face-up card and may only
-hit or stand. A player total over 21 loses at once. After the player stands, the dealer draws until their
-total is 17 or more and stands on every 17, soft or hard. A dealer total over 21 loses; otherwise the higher
-total wins and equal totals tie. A two-card 21 (blackjack) is played out like any other 21, without a bonus.
+The game is RLCard's `blackjack` environment (Zha et al., 2019) with its default configuration, the setup
+on which earlier LLM agents (Agent-Pro, Zhang et al., 2024) and RL agents (DQN, DMC) report win rates:
+one player against a dealer, a fresh shuffled 52-card deck for every hand, hit or stand only, the dealer
+draws until 17 or more and stands on every 17, no doubling, splitting, insurance or blackjack bonus. The
+dealer's first card is hidden and the second is shown. RLCard deals, scores and judges every hand; this
+module only renders the state as text for the model and computes the reference values.
 
-Because the deck is infinite, the value of every state can be computed exactly by dynamic programming:
-the expected return of hitting and standing, the optimal action, and the probability of winning the hand
-from here when playing optimally. These are logged with every step (`oracle`), never sent to the model,
-and give a ground truth for calibration that an outcome-only benchmark does not have.
+Because every hand starts from a full deck, the value of every decision can be computed exactly given the
+cards the player can see (own cards and the dealer's face-up card; the hidden card and every later card
+are a uniform draw from the rest of the deck): the expected return of hitting and standing, the optimal
+action, and the probability of winning the hand from here when playing optimally. These are logged with
+every step (`oracle`) and never sent to the model.
 
-Each episode is one hand. Cards come from a stream seeded by the episode id, so every model plays the same
-hands (common random numbers), and an answer only changes which cards of the stream are drawn by whom.
+Each episode is one hand, seeded by its index, so every model is dealt the same starting hand; after that
+the cards depend on the actions taken, as in RLCard.
 """
 
-import random
 from functools import lru_cache
+
+import rlcard
 
 from jev_benchmarking.sequential.envs.base import ACTION, SUCCESS, Decision, EpisodeSpec, SequentialEnv, StepResult, _only_asked
 from jev_benchmarking.tasks.base import choice, noul
 
-RANKS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
-VALUE = {r: (1 if r == "A" else 10 if r in ("10", "J", "Q", "K") else int(r)) for r in RANKS}
-# Probability of each card value 1..10 for one draw from an infinite deck.
-P_VALUE = {v: (4 / 13 if v == 10 else 1 / 13) for v in range(1, 11)}
+RANK_NAME = {"A": "A", "T": "10"}  # RLCard writes ten as "T"
+VALUE = {"A": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10, "Q": 10, "K": 10}
+FULL_DECK = (4, 4, 4, 4, 4, 4, 4, 4, 4, 16)  # cards of value 1 (ace) .. 10 in one 52-card deck
 
 RULES = (
-    "Blackjack against a dealer. Cards are drawn with replacement from an infinite deck, so earlier cards do "
-    "not change the chances of the next card. Number cards count their number, J, Q and K count 10, an ace "
-    "counts 11 unless that would bring the total over 21, in which case it counts 1. The player may hit (take "
-    "one more card) or stand (stop). A player total over 21 loses immediately. After the player stands, the "
-    "dealer reveals the hidden card and draws until the dealer total is 17 or more, standing on every 17. A "
-    "dealer total over 21 loses; otherwise the higher total wins and equal totals tie. There is no doubling, "
-    "splitting, insurance or blackjack bonus."
+    "Blackjack against a dealer, one 52-card deck shuffled for every hand. Number cards count their number, "
+    "J, Q and K count 10, an ace counts 11 unless that would bring the total over 21, in which case it counts "
+    "1. The dealer has one card face up and one hidden. The player may hit (take one more card) or stand "
+    "(stop). A player total over 21 loses immediately. After the player stands, the dealer reveals the "
+    "hidden card and draws until the dealer total is 17 or more, standing on every 17. A dealer total over "
+    "21 loses; otherwise the higher total wins and equal totals tie. There is no doubling, splitting, "
+    "insurance or blackjack bonus."
 )
 
 ACTION_Q = choice(
@@ -52,32 +54,48 @@ def hand(cards: list[str]) -> tuple[int, bool]:
     return sum(VALUE[c] for c in cards), any(c == "A" for c in cards)
 
 
+def remaining_deck(seen: list[str]) -> tuple[int, ...]:
+    deck = list(FULL_DECK)
+    for c in seen:
+        deck[VALUE[c] - 1] -= 1
+    return tuple(deck)
+
+
+def _draws(deck: tuple[int, ...]):
+    """(card value, probability, deck after the draw) for one draw from `deck`."""
+    n = sum(deck)
+    for i, k in enumerate(deck):
+        if k:
+            yield i + 1, k / n, deck[:i] + (k - 1,) + deck[i + 1:]
+
+
 # ----------------------------------------------------------------------------------------------------
-# Exact values (infinite deck).
+# Exact values (one deck, composition-dependent).
 
 
 @lru_cache(maxsize=None)
-def dealer_final(hard: int, ace: bool) -> tuple[tuple[int, float], ...]:
-    """Distribution of the dealer's final total from a dealer hand (hard, ace); 22 stands for a bust."""
+def dealer_final(hard: int, ace: bool, deck: tuple[int, ...]) -> tuple[tuple[int, float], ...]:
+    """Distribution of the dealer's final total from a dealer hand (hard, ace) drawing from `deck`;
+    22 stands for a bust."""
     if hard > 21:
         return ((22, 1.0),)
     total = best_total(hard, ace)
     if total >= 17:
         return ((total, 1.0),)
     dist: dict[int, float] = {}
-    for v, p in P_VALUE.items():
-        for final, q in dealer_final(hard + v, ace or v == 1):
+    for v, p, rest in _draws(deck):
+        for final, q in dealer_final(hard + v, ace or v == 1, rest):
             dist[final] = dist.get(final, 0.0) + p * q
     return tuple(sorted(dist.items()))
 
 
 @lru_cache(maxsize=None)
-def stand_value(total: int, upcard: int) -> tuple[float, float]:
-    """(expected return, P(win)) of standing on `total` against a dealer showing `upcard` (1 = ace)."""
+def stand_value(total: int, upcard: int, deck: tuple[int, ...]) -> tuple[float, float]:
+    """(expected return, P(win)) of standing on `total`; the dealer's hidden card and draws come from `deck`."""
     if total > 21:
         return -1.0, 0.0
     win = lose = 0.0
-    for final, p in dealer_final(upcard, upcard == 1):
+    for final, p in dealer_final(upcard, upcard == 1, deck):
         if final == 22 or final < total:
             win += p
         elif final > total:
@@ -86,14 +104,15 @@ def stand_value(total: int, upcard: int) -> tuple[float, float]:
 
 
 @lru_cache(maxsize=None)
-def values(hard: int, ace: bool, upcard: int) -> dict:
-    """Exact values of a player state under optimal play from here (optimal = highest expected return)."""
+def values(hard: int, ace: bool, upcard: int, deck: tuple[int, ...]) -> dict:
+    """Exact values of a player state under optimal play from here (optimal = highest expected return).
+    `deck` is the deck without the player's cards and the dealer's face-up card."""
     if hard > 21:
         return {"q_hit": -1.0, "q_stand": -1.0, "v": -1.0, "p_win": 0.0, "p_win_hit": 0.0, "p_win_stand": 0.0, "best": "stand"}
-    q_stand, w_stand = stand_value(best_total(hard, ace), upcard)
+    q_stand, w_stand = stand_value(best_total(hard, ace), upcard, deck)
     q_hit = w_hit = 0.0
-    for v, p in P_VALUE.items():
-        nxt = values(hard + v, ace or v == 1, upcard)
+    for v, p, rest in _draws(deck):
+        nxt = values(hard + v, ace or v == 1, upcard, rest)
         q_hit += p * nxt["v"]
         w_hit += p * nxt["p_win"]
     best = "hit" if q_hit > q_stand else "stand"
@@ -104,18 +123,28 @@ def values(hard: int, ace: bool, upcard: int) -> dict:
     }
 
 
+def state_values(player_cards: list[str], upcard: str) -> dict:
+    hard, ace = hand(player_cards)
+    return values(hard, ace, VALUE[upcard], remaining_deck(player_cards + [upcard]))
+
+
 # ----------------------------------------------------------------------------------------------------
+
+
+def _name(card) -> str:
+    return RANK_NAME.get(card.rank, card.rank)
 
 
 class Blackjack(SequentialEnv):
     name = "blackjack"
-    max_steps = 12  # more hits than this always bust
-    description = "Hit or stand; exact action values and win probabilities by dynamic programming."
+    max_steps = 12  # at most 11 cards fit under 22 with one deck
+    description = "RLCard Blackjack (hit or stand); exact action values and win probabilities by dynamic programming."
     SEED_OFFSET = {"eval": 0, "dev": 10_000_000}
     DEFAULT_N = {"eval": 5000, "dev": 500}
 
     def __init__(self, ask_success: bool = False):
         self.ask_success = ask_success
+        self.env = rlcard.make("blackjack", config={"game_num_players": 1, "game_num_decks": 1})
 
     def episodes(self, split: str = "eval", limit: int | None = None) -> list[EpisodeSpec]:
         n = limit if limit is not None else self.DEFAULT_N[split]
@@ -123,58 +152,55 @@ class Blackjack(SequentialEnv):
         return [EpisodeSpec(f"{split}-{i:06d}", "", base + i) for i in range(n)]
 
     def reset(self, spec: EpisodeSpec) -> None:
-        self.rng = random.Random(spec.payload)
-        draw = self._draw
-        self.player = [draw(), draw()]
-        self.dealer = [draw(), draw()]  # dealer[0] face up, dealer[1] hidden
-        self.over = False
+        self.env.seed(spec.payload)
+        self.env.reset()
         self.result: StepResult | None = None
-        if best_total(*hand(self.player)) == 21:  # two-card 21: nothing to decide
-            self._dealer_plays()
 
-    def _draw(self) -> str:
-        return self.rng.choice(RANKS)
+    @property
+    def _game(self):
+        return self.env.game
+
+    @property
+    def player(self) -> list[str]:
+        return [_name(c) for c in self._game.players[0].hand]
+
+    @property
+    def dealer(self) -> list[str]:
+        return [_name(c) for c in self._game.dealer.hand]
+
+    @property
+    def upcard(self) -> str:
+        return self.dealer[1]  # RLCard hides the dealer's first card and shows the second
 
     def state(self) -> dict:
         hard, ace = hand(self.player)
         return {
             "rules": RULES,
-            "player_cards": list(self.player),
+            "player_cards": self.player,
             "player_total": best_total(hard, ace),
             "player_total_is_soft": ace and hard + 10 <= 21,
-            "dealer_face_up_card": self.dealer[0],
+            "dealer_face_up_card": self.upcard,
         }
 
     def decision(self) -> Decision | None:
-        if self.over:
+        if self.env.is_over():
             return None
         hard, ace = hand(self.player)
-        oracle = dict(values(hard, ace, VALUE[self.dealer[0]]))
-        oracle.update(player_total=best_total(hard, ace), soft=ace and hard + 10 <= 21, upcard=self.dealer[0])
+        oracle = dict(state_values(self.player, self.upcard))
+        oracle.update(player_total=best_total(hard, ace), soft=ace and hard + 10 <= 21, upcard=self.upcard)
         questions = {ACTION: ACTION_Q, SUCCESS: SUCCESS_Q} if self.ask_success else {ACTION: ACTION_Q}
         return Decision(self.state(), questions, {"hit": "hit", "stand": "stand"}, oracle)
 
     def step(self, action: str) -> StepResult:
-        if action == "hit":
-            card = self._draw()
-            self.player.append(card)
-            total = best_total(*hand(self.player))
-            if total > 21:
-                self.over = True
-                self.result = StepResult(True, False, -1.0, f"Player draws {card}: {total}, bust.")
-                return self.result
-            if total == 21:  # nothing left to gain by hitting
-                return self._dealer_plays(f"Player draws {card}: 21. ")
-            return StepResult(False, feedback=f"Player draws {card}: {total}.")
-        return self._dealer_plays()
-
-    def _dealer_plays(self, prefix: str = "") -> StepResult:
-        while best_total(*hand(self.dealer)) < 17:
-            self.dealer.append(self._draw())
-        p, d = best_total(*hand(self.player)), best_total(*hand(self.dealer))
-        reward = 1.0 if d > 21 or p > d else 0.0 if p == d else -1.0
-        self.over = True
-        self.result = StepResult(True, reward > 0, reward, f"{prefix}Dealer has {' '.join(self.dealer)} = {d}; player {p}.")
+        self.env.step(action, raw_action=True)
+        p = best_total(*hand(self.player))
+        if not self.env.is_over():
+            return StepResult(False, feedback=f"Player draws {self.player[-1]}: {p}.")
+        reward = float(self.env.get_payoffs()[0])
+        d = best_total(*hand(self.dealer))
+        drew = f"Player draws {self.player[-1]}: {p}. " if action == "hit" else ""
+        fb = f"{drew}Bust." if p > 21 else f"{drew}Dealer has {' '.join(self.dealer)} = {d}; player {p}."
+        self.result = StepResult(True, reward > 0, reward, fb)
         return self.result
 
     def outcome(self) -> StepResult:
@@ -186,9 +212,7 @@ class Blackjack(SequentialEnv):
 
 
 def _oracle_of(state: dict) -> dict:
-    total, soft = state["player_total"], state["player_total_is_soft"]
-    hard, ace = (total - 10, True) if soft else (total, False)
-    return values(hard, ace, VALUE[state["dealer_face_up_card"]])
+    return state_values(state["player_cards"], state["dealer_face_up_card"])
 
 
 def optimal_policy(state: dict, questions: dict) -> dict:

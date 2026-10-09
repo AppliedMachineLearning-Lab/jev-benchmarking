@@ -9,7 +9,7 @@ import pytest
 from jev_benchmarking.cache import ResponseCache
 from jev_benchmarking.sequential.backends import BudgetExceeded, FunctionBackend, JevBackend
 from jev_benchmarking.sequential.envs.base import ACTION, SUCCESS
-from jev_benchmarking.sequential.envs.blackjack import SCRIPTED, Blackjack, dealer_final, values
+from jev_benchmarking.sequential.envs.blackjack import FULL_DECK, SCRIPTED, Blackjack, dealer_final, state_values
 from jev_benchmarking.sequential.metrics import repeat_metrics, summarize
 from jev_benchmarking.sequential.runner import load_episodes, run, run_episode
 
@@ -24,23 +24,19 @@ def fake_key(monkeypatch):
 
 def test_dealer_distribution_sums_to_one():
     for up in range(1, 11):
-        assert sum(p for _, p in dealer_final(up, up == 1)) == pytest.approx(1.0)
+        assert sum(p for _, p in dealer_final(up, up == 1, FULL_DECK)) == pytest.approx(1.0)
 
 
 @pytest.mark.parametrize(
-    "hard,ace,up,best",
-    [  # textbook basic strategy without doubling or splitting, dealer stands on soft 17
-        (12, False, 2, "hit"), (12, False, 4, "stand"), (12, False, 7, "hit"),
-        (13, False, 2, "stand"), (16, False, 10, "hit"), (16, False, 6, "stand"),
-        (17, False, 10, "stand"), (11, False, 10, "hit"),
-        (7, True, 2, "hit"),   # A+6 = soft 17 vs 2 -> hit
-        (8, True, 9, "hit"),   # soft 18 vs 9 -> hit
-        (8, True, 7, "stand"),  # soft 18 vs 7 -> stand
-        (9, True, 10, "stand"),  # soft 19 -> stand
+    "cards,up,best",
+    [  # single-deck basic strategy incl. the composition-dependent 10-3 v 2 and 10-2 v 4 hits (hit or stand only, dealer stands on soft 17)
+        (["10", "2"], "7", "hit"), (["9", "4"], "2", "stand"), (["10", "3"], "2", "hit"), (["10", "2"], "4", "hit"), (["10", "6"], "10", "hit"),
+        (["10", "6"], "6", "stand"), (["10", "7"], "10", "stand"), (["5", "6"], "10", "hit"),
+        (["A", "6"], "9", "hit"), (["A", "8"], "10", "stand"), (["10", "10"], "A", "stand"),
     ],
 )
-def test_basic_strategy(hard, ace, up, best):
-    assert values(hard, ace, up)["best"] == best
+def test_basic_strategy(cards, up, best):
+    assert state_values(cards, up)["best"] == best
 
 
 def test_exact_values_match_simulation():
@@ -115,7 +111,7 @@ def test_sharding_partitions_episodes(tmp_path):
 def test_metrics_reference_policy_is_exact():
     env, backend = Blackjack(ask_success=True), FunctionBackend("optimal", SCRIPTED["optimal"])
     s = summarize([run_episode(env, sp, backend) for sp in env.episodes("eval", 500)])
-    assert s["optimal_action_rate"] == 1.0
+    assert s["step_accuracy_vs_expert"] == 1.0 and s["step_ece"] == pytest.approx(0.0)
     assert s["mean_regret_per_decision"] == pytest.approx(0.0)
     assert s["success_estimate_mae_vs_exact"] == pytest.approx(0.0)
 
@@ -123,7 +119,7 @@ def test_metrics_reference_policy_is_exact():
 def test_metrics_weak_policy_has_regret():
     env, backend = Blackjack(), FunctionBackend("never_bust", SCRIPTED["never_bust"])
     s = summarize([run_episode(env, sp, backend) for sp in env.episodes("eval", 500)])
-    assert s["optimal_action_rate"] < 0.9 and s["mean_regret_per_decision"] > 0
+    assert s["step_accuracy_vs_expert"] < 0.9 and s["mean_regret_per_decision"] > 0
 
 
 def test_repeat_metrics_catch_repeats_and_oscillations():

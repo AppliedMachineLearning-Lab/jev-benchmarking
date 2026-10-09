@@ -1,0 +1,67 @@
+{
+ "env": "frozenlake",
+ "model": "jev-1.13.0",
+ "n_episodes": 500,
+ "success_rate": 0.134,
+ "success_ci95": [
+  0.106,
+  0.166
+ ],
+ "mean_steps": 8.708,
+ "cost_per_episode_usd": 0.000249638676,
+ "repeat_step_rate": 0.19384474046853467,
+ "step_accuracy_vs_expert": 0.29949471750114837,
+ "step_ece": 0.3947220946256316,
+ "step_brier": 1.0131949931097841,
+ "mean_reward": 0.134,
+ "mean_regret_per_decision": 0.07211094954187183,
+ "details": {
+  "env": "frozenlake",
+  "model": "jev-1.13.0",
+  "mode": "greedy",
+  "n_episodes": 500,
+  "success_rate": 0.134,
+  "success_ci95": [
+   0.106,
+   0.166
+  ],
+  "mean_reward": 0.134,
+  "reward_ci95": [
+   0.106,
+   0.166
+  ],
+  "mean_steps": 8.708,
+  "truncated_rate": 0.0,
+  "n_requests": 4354,
+  "input_tokens": 2971889,
+  "tokens_per_request": 682.5652273771245,
+  "cost_usd": 0.12481933800000002,
+  "mean_latency_s": 0.242400480653689,
+  "success_by_subset": {
+   "4x4": {
+    "n": 250,
+    "success_rate": 0.256
+   },
+   "8x8": {
+    "n": 250,
+    "success_rate": 0.012
+   }
+  },
+  "repeat_step_rate": 0.19384474046853467,
+  "episodes_with_loop": 0.108,
+  "mean_top_action_prob": 0.69421681212678,
+  "expert_agreement": 0.29949471750114837,
+  "action_vs_expert_calibration": {
+   "n": 4354,
+   "mean_p": 0.69421681212678,
+   "rate": 0.29949471750114837,
+   "ece": 0.3947220946256316,
+   "brier": 1.0131949931097841
+  },
+  "n_uninformative_steps": 0,
+  "exact": {
+   "optimal_action_rate": 0.29949471750114837,
+   "mean_regret_per_decision": 0.07211094954187183
+  }
+ }
+}

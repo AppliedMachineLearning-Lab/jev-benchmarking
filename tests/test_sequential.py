@@ -192,3 +192,15 @@ def test_tied_optimal_actions_form_one_gold_class():
     ep = {"env": "x", "model": "m", "mode": "greedy", "subset": "", "success": True, "reward": 1.0, "n_steps": 1, "steps": [step]}
     cal = summarize([ep])["details"]["action_vs_expert_calibration"]
     assert cal["brier"] == pytest.approx((0.8 - 1) ** 2 + 0.1 ** 2 + 0.1 ** 2)
+
+
+def test_frozenlake_variants():
+    from jev_benchmarking.sequential.envs.frozenlake import build_request
+
+    desc = ("SFFF", "HHFF", "FHHF", "HFFG")
+    s, q, o = build_request(desc, 0, 0, 0, 100, "outcomes")
+    assert "HOLE" in q["action"]["criteria"]["right"] and "HOLE" not in q["action"]["criteria"]["up"]
+    s, q, o = build_request(desc, 0, 0, 0, 100, "deterministic")
+    assert "not slippery" in s["rules"] and o["optimal"] == ["right"] and o["distance"] == 6
+    base = build_request(desc, 0, 0, 0, 100, "base")
+    assert base[2]["optimal"] == ["up"] and "slippery: the agent moves" in base[0]["rules"]

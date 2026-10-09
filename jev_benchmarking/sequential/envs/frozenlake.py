@@ -84,6 +84,127 @@ def state_values(desc: tuple[str, ...], row: int, col: int, steps_left: int, hor
     optimal = [MOVES[a] for a in range(4) if q[a] >= best - TIE]
     return {"q": {MOVES[a]: float(q[a]) for a in range(4)}, "p_win": best, "optimal": optimal, "best": optimal[0]}
 
+# ----------------------------------------------------------------------------------------------------
+# Prompt variants, used only by the diagnostic probe (scripts/probe_frozenlake.py); episodes use "base".
+#   base:          the request above.
+#   safety:        the question adds the strategy (avoid moves that can slip into a hole).
+#   outcomes:      each option lists where the move can land, so no consequence has to be worked out.
+#   deterministic: non-slippery ice (moves go where chosen); the reference is the shortest safe path.
+
+VARIANTS = ("base", "safety", "outcomes", "deterministic")
+
+SAFETY_Q = choice(
+    "Which move gives the highest probability of reaching the goal G before falling into a hole or running out "
+    "of steps? Falling into a hole ends the game, and every move can slip sideways. Prefer a move for which no "
+    "possible slip lands on a hole, even if it leads away from the goal for now.",
+    {"left": "move left", "down": "move down", "right": "move right", "up": "move up"},
+)
+
+RULES_DETERMINISTIC = (
+    "FrozenLake. The agent walks on a frozen lake drawn as a grid of tiles: S is the start, F is frozen "
+    "ice that is safe to stand on, H is a hole and G is the goal. Rows are numbered from 0 at the top and "
+    "columns from 0 at the left. 'up' decreases the row, 'down' increases it, 'left' decreases the column "
+    "and 'right' increases it. The ice is not slippery: the agent always moves in the chosen direction. A "
+    "move into the edge of the grid leaves the agent where it is. Stepping onto H ends the episode in "
+    "failure and reaching G ends it in success. In the map with the agent, A marks the agent's tile."
+)
+
+DETERMINISTIC_Q = choice(
+    "Which move brings the agent to the goal G in the fewest moves without ever stepping onto a hole?",
+    {"left": "move left", "down": "move down", "right": "move right", "up": "move up"},
+)
+
+DELTA = {"left": (0, -1), "down": (1, 0), "right": (0, 1), "up": (-1, 0)}
+PERPENDICULAR = {"left": ("down", "up"), "down": ("left", "right"), "right": ("down", "up"), "up": ("left", "right")}
+
+
+def landing(desc: tuple[str, ...], row: int, col: int, direction: str) -> tuple[int, int]:
+    dr, dc = DELTA[direction]
+    r, c = row + dr, col + dc
+    return (r, c) if 0 <= r < len(desc) and 0 <= c < len(desc[0]) else (row, col)
+
+
+def outcome_text(desc: tuple[str, ...], row: int, col: int, move: str) -> str:
+    """Where a slippery move can land, merged by tile, e.g. '2/3: stay at row 0, column 0 (S); 1/3: row 0,
+    column 1 (F)'."""
+    counts: dict[tuple[int, int], int] = {}
+    for d in (move, *PERPENDICULAR[move]):
+        counts[landing(desc, row, col, d)] = counts.get(landing(desc, row, col, d), 0) + 1
+    names = {"S": "start", "F": "frozen", "H": "HOLE", "G": "GOAL"}
+    parts = []
+    for (r, c), k in counts.items():
+        where = f"stay at row {r}, column {c}" if (r, c) == (row, col) else f"row {r}, column {c}"
+        parts.append(f"{k}/3: {where} ({names[desc[r][c]]})")
+    return f"move {move}; lands on " + "; ".join(parts)
+
+
+@lru_cache(maxsize=4096)
+def distances(desc: tuple[str, ...]) -> dict[tuple[int, int], int]:
+    """Shortest number of deterministic moves to G from every tile, never stepping onto H (BFS from G)."""
+    n, m = len(desc), len(desc[0])
+    goal = next((r, c) for r in range(n) for c in range(m) if desc[r][c] == "G")
+    dist, frontier = {goal: 0}, [goal]
+    while frontier:
+        nxt = []
+        for r, c in frontier:
+            for dr, dc in DELTA.values():
+                pr, pc = r - dr, c - dc  # a tile from which moving (dr, dc) reaches (r, c)
+                if 0 <= pr < n and 0 <= pc < m and (pr, pc) not in dist and desc[pr][pc] != "H":
+                    dist[(pr, pc)] = dist[(r, c)] + 1
+                    nxt.append((pr, pc))
+        frontier = nxt
+    return dist
+
+
+def deterministic_values(desc: tuple[str, ...], row: int, col: int) -> dict:
+    """Reference for non-slippery ice: the moves that start a shortest safe path to G."""
+    dist = distances(desc)
+    q = {}
+    for mv in MOVES:
+        r, c = landing(desc, row, col, mv)
+        # moves needed to reach G after this move (negated); a hole is worst, then a tile without a safe path, then
+        # staying in place against the edge
+        if desc[r][c] == "H":
+            q[mv] = -1000.0
+        elif (r, c) == (row, col):
+            q[mv] = -99.0
+        elif (r, c) not in dist:
+            q[mv] = -500.0
+        else:
+            q[mv] = -float(dist[(r, c)] + 1)
+    best = max(q.values())
+    optimal = [mv for mv in MOVES if q[mv] >= best - TIE] if (row, col) in dist else []
+    return {"q_steps": q, "optimal": optimal, "best": optimal[0] if optimal else None,
+            "distance": dist.get((row, col))}
+
+
+def build_request(desc: tuple[str, ...], row: int, col: int, steps_taken: int, max_steps: int,
+                  variant: str = "base", ask_success: bool = False) -> tuple[dict, dict, dict]:
+    """(state, questions, oracle) for one decision under a prompt variant."""
+    rows = list(desc)
+    rows[row] = rows[row][:col] + "A" + rows[row][col + 1:]
+    state = {
+        "rules": RULES_DETERMINISTIC if variant == "deterministic" else RULES,
+        "map": list(desc),
+        "map_with_agent": rows,
+        "agent_row": row,
+        "agent_column": col,
+        "agent_tile": desc[row][col],
+        "steps_taken": steps_taken,
+        "steps_left": max_steps - steps_taken,
+    }
+    if variant == "deterministic":
+        q, oracle = DETERMINISTIC_Q, deterministic_values(desc, row, col)
+    else:
+        q = {"base": ACTION_Q, "safety": SAFETY_Q}.get(variant)
+        if variant == "outcomes":
+            q = choice(ACTION_Q["instructions"], {mv: outcome_text(desc, row, col, mv) for mv in MOVES})
+        if q is None:
+            raise ValueError(f"unknown variant {variant!r}; choose from {VARIANTS}")
+        oracle = state_values(desc, row, col, max_steps - steps_taken, max_steps)
+    questions = {ACTION: q, SUCCESS: SUCCESS_Q} if ask_success else {ACTION: q}
+    return state, questions, oracle
+
 
 class FrozenLake(SequentialEnv):
     name = "frozenlake"
@@ -122,33 +243,17 @@ class FrozenLake(SequentialEnv):
     def pos(self) -> tuple[int, int]:
         return divmod(int(self.s), len(self.desc[0]))
 
-    def _map_with_agent(self) -> list[str]:
-        r, c = self.pos
-        rows = list(self.desc)
-        rows[r] = rows[r][:c] + "A" + rows[r][c + 1:]
-        return rows
-
     def state(self) -> dict:
         r, c = self.pos
-        return {
-            "rules": RULES,
-            "map": list(self.desc),
-            "map_with_agent": self._map_with_agent(),
-            "agent_row": r,
-            "agent_column": c,
-            "agent_tile": self.desc[r][c],
-            "steps_taken": self.t,
-            "steps_left": self.max_steps - self.t,
-        }
+        return build_request(self.desc, r, c, self.t, self.max_steps)[0]
 
     def decision(self) -> Decision | None:
         if self.result is not None:
             return None
         r, c = self.pos
-        oracle = state_values(self.desc, r, c, self.max_steps - self.t, self.max_steps)
-        oracle.update(row=r, col=c, steps_left=self.max_steps - self.t)
-        questions = {ACTION: ACTION_Q, SUCCESS: SUCCESS_Q} if self.ask_success else {ACTION: ACTION_Q}
-        return Decision(self.state(), questions, {m: m for m in MOVES}, oracle)
+        state, questions, oracle = build_request(self.desc, r, c, self.t, self.max_steps, "base", self.ask_success)
+        oracle = dict(oracle, row=r, col=c, steps_left=self.max_steps - self.t)
+        return Decision(state, questions, {m: m for m in MOVES}, oracle)
 
     def step(self, action: str) -> StepResult:
         self.s, reward, terminated, truncated, _ = self.env.step(MOVES.index(action))

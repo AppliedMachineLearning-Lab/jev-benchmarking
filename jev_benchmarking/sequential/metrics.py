@@ -116,24 +116,45 @@ def _summarize_all(episodes: list[dict]) -> dict:
     top = np.array([max(s["probs"].values()) for s in steps]) if steps else np.array([])
     out["mean_top_action_prob"] = float(top.mean()) if len(top) else math.nan
 
-    # Agreement with the reference action (ALFWorld: handcoded expert; Blackjack: exact optimal action), and
-    # calibration of the top action probability against "the chosen action is the reference".
+    # Agreement with the reference action (ALFWorld: handcoded expert; Blackjack and FrozenLake: exact optimal
+    # actions), and calibration of the top action probability against "the chosen action is a reference action".
+    # Same definitions as the single-step Choice metrics (metrics.choice_metrics): ECE on the top probability, and
+    # the multiclass Brier score over the full distribution with the reference action as the gold option. Where
+    # several actions are optimal (FrozenLake), they form one gold class: its probability is their summed
+    # probability. Steps on which every legal action is optimal carry no information and are left out.
+    labelled = []
     for s in steps:
-        if "best" in s["oracle"] and not s["oracle"].get("expert"):
-            s["oracle"]["expert"] = s["oracle"]["best"]
-    expert = [(max(s["probs"].values()), s["action"] == s["oracle"]["expert"]) for s in steps if s["oracle"].get("expert")]
-    if expert:
-        p, y = map(np.array, zip(*expert))
+        ref = _reference(s["oracle"])
+        if ref and len(ref) < s.get("n_actions", len(s["probs"])):
+            labelled.append((s, ref))
+    if labelled:
+        p = np.array([max(s["probs"].values()) for s, _ in labelled], dtype=float)
+        y = np.array([s["action"] in ref for s, ref in labelled], dtype=float)
         out["expert_agreement"] = float(y.mean())
-        cal = _calibration(p.astype(float), y.astype(float))
-        # Same definitions as the single-step Choice metrics (metrics.choice_metrics): ECE on the top
-        # probability, and the multiclass Brier score over the full distribution, with the expert's
-        # command as the gold option.
-        labelled = [s for s in steps if s["oracle"].get("expert")]
+        cal = _calibration(p, y)
         cal["brier"] = float(np.mean([
-            sum((q - (a == s["oracle"]["expert"])) ** 2 for a, q in s["probs"].items()) for s in labelled
+            (sum(q for a, q in s["probs"].items() if a in ref) - 1.0) ** 2
+            + sum(q ** 2 for a, q in s["probs"].items() if a not in ref)
+            for s, ref in labelled
         ]))
         out["action_vs_expert_calibration"] = cal
+        out["n_uninformative_steps"] = len(steps) - len(labelled)
+
+    # FrozenLake: exact success probabilities per action.
+    valued = [s for s in steps if "q" in s["oracle"]]
+    if valued:
+        regret = np.array([max(s["oracle"]["q"].values()) - s["oracle"]["q"][s["action"]] for s in valued])
+        out["exact"] = {
+            "optimal_action_rate": float(np.mean([s["action"] in s["oracle"]["optimal"] for s in valued])),
+            "mean_regret_per_decision": float(regret.mean()),
+        }
+        with_p = [s for s in valued if s["p_success"] is not None]
+        if with_p:
+            pp = np.array([s["p_success"] for s in with_p], dtype=float)
+            star = np.array([s["oracle"]["p_win"] for s in with_p], dtype=float)
+            out["exact"]["success_vs_exact_p_win"] = {"mae": float(np.abs(pp - star).mean()),
+                                                     "bias": float((pp - star).mean()),
+                                                     "ece_vs_exact": _ece_vs_target(pp, star)}
 
     # Blackjack: exact values.
     exact = [s for s in steps if "q_hit" in s["oracle"]]
@@ -158,6 +179,14 @@ def _summarize_all(episodes: list[dict]) -> dict:
                 "ece_vs_exact": _ece_vs_target(p, star),
             }
     return out
+
+
+def _reference(oracle: dict) -> list[str]:
+    """The reference action(s) of a step: the set of optimal actions, the expert's action, or the best action."""
+    if oracle.get("optimal"):
+        return list(oracle["optimal"])
+    ref = oracle.get("expert") or oracle.get("best")
+    return [ref] if ref else []
 
 
 def _ece_vs_target(p: np.ndarray, target: np.ndarray, n_bins: int = 15) -> float:

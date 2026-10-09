@@ -4,6 +4,7 @@ Examples:
   python scripts/run_sequential.py blackjack --backend scripted:optimal --limit 2000      # reference, free
   python scripts/run_sequential.py blackjack --dry-run --limit 5000                       # token/cost estimate
   python scripts/run_sequential.py blackjack --backend jev --limit 5000 --max-cost 1.0
+  python scripts/run_sequential.py frozenlake --backend scripted:optimal --limit 500
   python scripts/run_sequential.py alfworld --backend scripted:expert                     # expert reference
   python scripts/run_sequential.py alfworld --backend jev --split eval --max-cost 2.0
   python scripts/run_sequential.py alfworld --backend hf:Qwen/Qwen3.8-27B --device auto
@@ -31,6 +32,10 @@ def make_env(name: str):
         from jev_benchmarking.sequential.envs import blackjack
 
         return blackjack.Blackjack(), blackjack.SCRIPTED
+    if name == "frozenlake":
+        from jev_benchmarking.sequential.envs import frozenlake
+
+        return frozenlake.FrozenLake(), frozenlake.SCRIPTED
     if name == "alfworld":
         from jev_benchmarking.sequential.envs import alfworld
 
@@ -72,7 +77,7 @@ class _CountingBackend(FunctionBackend):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("env", choices=["blackjack", "alfworld"])
+    ap.add_argument("env", choices=["blackjack", "frozenlake", "alfworld"])
     ap.add_argument("--backend", default="jev", help="jev | hf:<model id> | scripted:<policy>")
     ap.add_argument("--split", default="eval")
     ap.add_argument("--limit", type=int, default=None)

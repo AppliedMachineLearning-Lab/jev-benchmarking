@@ -159,3 +159,36 @@ def test_success_question_is_off_by_default():
     env.reset(env.episodes("eval", 5)[1])
     d = env.decision()
     assert d is None or set(d.questions) == {ACTION, SUCCESS}
+
+
+# ---- FrozenLake -----------------------------------------------------------------------------------
+
+
+def test_frozenlake_exact_values_match_simulation():
+    from jev_benchmarking.sequential.envs.frozenlake import SCRIPTED as FL, FrozenLake
+
+    env, backend = FrozenLake(), FunctionBackend("optimal", FL["optimal"])
+    eps = [run_episode(env, s, backend) for s in env.episodes("dev", 400) if s.subset == "4x4"]
+    p = np.array([e["steps"][0]["oracle"]["p_win"] for e in eps])
+    y = np.array([e["success"] for e in eps], dtype=float)
+    assert abs(p.mean() - y.mean()) < 3 * np.sqrt(p.mean() * (1 - p.mean()) / len(p))
+    s = summarize(eps)
+    assert s["step_accuracy_vs_expert"] == 1.0 and s["mean_regret_per_decision"] == pytest.approx(0.0, abs=1e-12)
+
+
+def test_frozenlake_wall_hugging_start():
+    """Holes directly below the start: only 'up' cannot fall (it slips left or right along the edge)."""
+    from jev_benchmarking.sequential.envs.frozenlake import state_values
+
+    v = state_values(("SFFF", "HHFF", "FHHF", "HFFG"), 0, 0, 100, 100)
+    assert v["optimal"] == ["up"] and v["q"]["down"] < v["q"]["up"]
+
+
+def test_tied_optimal_actions_form_one_gold_class():
+    probs = {"left": 0.4, "down": 0.4, "right": 0.1, "up": 0.1}
+    step = {"t": 0, "action": "left", "probs": probs, "p_success": None, "n_actions": 4, "feedback": "",
+            "oracle": {"optimal": ["left", "down"], "q": {"left": .5, "down": .5, "right": .2, "up": .1}},
+            "input_tokens": 0, "cached": False, "latency_s": 0.0}
+    ep = {"env": "x", "model": "m", "mode": "greedy", "subset": "", "success": True, "reward": 1.0, "n_steps": 1, "steps": [step]}
+    cal = summarize([ep])["details"]["action_vs_expert_calibration"]
+    assert cal["brier"] == pytest.approx((0.8 - 1) ** 2 + 0.1 ** 2 + 0.1 ** 2)

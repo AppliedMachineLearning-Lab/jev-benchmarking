@@ -204,3 +204,61 @@ def test_frozenlake_variants():
     assert "not slippery" in s["rules"] and o["optimal"] == ["right"] and o["distance"] == 6
     base = build_request(desc, 0, 0, 0, 100, "base")
     assert base[2]["optimal"] == ["up"] and "slippery: the agent moves" in base[0]["rules"]
+
+
+# ---- BabyAI-Text and TextWorld -------------------------------------------------------------------
+
+
+def test_babyai_text_descriptions_match_grid_and_bot_solves():
+    import re
+
+    import numpy as np
+
+    from jev_benchmarking.sequential.envs.babyai_text import BabyAIText
+
+    env = BabyAIText()
+    for spec in env.episodes("dev", 10):
+        env.reset(spec)
+        e = env.env
+        ap, fwd, right = np.array(e.agent_pos), np.array(e.dir_vec), np.array(e.right_vec)
+        _, vis = e.gen_obs_grid()
+        truth = set()
+        for x in range(e.width):
+            for y in range(e.height):
+                o = e.grid.get(x, y)
+                if o is None or o.type == "wall":
+                    continue
+                d = np.array([x, y]) - ap
+                f, r = int(d @ fwd), int(d @ right)
+                vx, vy = e.agent_view_size // 2 + r, e.agent_view_size - 1 - f
+                if 0 <= vx < e.agent_view_size and 0 <= vy < e.agent_view_size and vis[vx, vy]:
+                    truth.add((o.color, o.type, r, f))
+        said = set()
+        for line in env.view:
+            m = re.match(r"You see (?:a|an) (?:(?:open|closed|locked) )?(\w+) (\w+) (.*)", line)
+            if not m or m.group(2) == "wall" or line.startswith("You see a wall"):
+                continue
+            r = f = 0
+            for n, way in re.findall(r"(\d+) steps? (left|right|forward)", m.group(3)):
+                r, f = (-int(n), f) if way == "left" else (int(n), f) if way == "right" else (r, int(n))
+            said.add((m.group(1), m.group(2), r, f))
+        assert said == truth
+        while (d := env.decision()) is not None:
+            if env.step(d.oracle["expert"]).done:
+                break
+        assert env.outcome().success
+
+
+def test_textworld_solver_and_clean_text():
+    pytest.importorskip("textworld")
+    from jev_benchmarking.sequential.envs.textworld_games import TextWorldGames
+
+    env = TextWorldGames()
+    for spec in env.episodes(limit=3):  # one game of each type
+        env.reset(spec)
+        assert "$$" not in env.first_observation and ">" not in env.first_observation.splitlines()[-1]
+        while (d := env.decision()) is not None:
+            key = next(k for k, a in d.actions.items() if a == d.oracle["expert"])
+            if env.step(d.actions[key]).done:
+                break
+        assert env.outcome().success

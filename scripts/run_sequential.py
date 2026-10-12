@@ -40,6 +40,14 @@ def make_env(name: str):
         from jev_benchmarking.sequential.envs import alfworld
 
         return alfworld.ALFWorld(), {**alfworld.SCRIPTED, "expert": None}
+    if name == "textworld":
+        from jev_benchmarking.sequential.envs import textworld_games
+
+        return textworld_games.TextWorldGames(), {**textworld_games.SCRIPTED, "expert": None}
+    if name == "babyai_text":
+        from jev_benchmarking.sequential.envs import babyai_text
+
+        return babyai_text.BabyAIText(), {**babyai_text.SCRIPTED, "expert": None}
     raise SystemExit(f"unknown env {name!r}")
 
 
@@ -51,7 +59,7 @@ def make_backend(spec: str, env_name: str, scripted: dict, args):
         return OpenModelBackend(model_id, ResponseCache(model=spec), device=args.device)
     if spec.startswith("scripted:"):
         name = spec.split(":", 1)[1]
-        if env_name == "alfworld" and name == "expert":
+        if env_name in ("alfworld", "textworld", "babyai_text") and name == "expert":
             from jev_benchmarking.sequential.envs.alfworld import ExpertBackend
 
             return ExpertBackend.make()
@@ -77,7 +85,7 @@ class _CountingBackend(FunctionBackend):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("env", choices=["blackjack", "frozenlake", "alfworld"])
+    ap.add_argument("env", choices=["blackjack", "frozenlake", "alfworld", "textworld", "babyai_text"])
     ap.add_argument("--backend", default="jev", help="jev | hf:<model id> | scripted:<policy>")
     ap.add_argument("--split", default="eval")
     ap.add_argument("--limit", type=int, default=None)
@@ -95,7 +103,7 @@ def main() -> None:
     env, scripted = make_env(args.env)
     env.ask_success = args.ask_success
     if args.dry_run:
-        policy = "expert" if args.env == "alfworld" else "optimal"
+        policy = "expert" if args.env in ("alfworld", "textworld", "babyai_text") else "optimal"
         backend = _CountingBackend(make_backend(f"scripted:{policy}", args.env, scripted, args))
         out = run(env, backend, split=args.split, limit=args.limit, mode=args.mode, out=Path("/dev/null"))
         n_ep = len(env.episodes(args.split, args.limit))

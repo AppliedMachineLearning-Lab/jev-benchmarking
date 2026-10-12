@@ -143,6 +143,7 @@ python scripts/run_sequential.py alfworld --backend jev --shard 0 --num-shards 4
 python scripts/run_sequential.py frozenlake --backend hf:Qwen/Qwen3.8-27B --device auto   # open-weight model
 python scripts/run_sequential.py frozenlake --backend jev --summarize          # metrics only
 python scripts/probe_frozenlake.py --backend jev                               # FrozenLake prompt-variant probe
+python scripts/inspect_episode.py frozenlake results/sequential/frozenlake/jev.greedy.eval.jsonl --episode 0   # replay and check one episode
 ```
 
 - **Output:** one JSON line per episode in `results/sequential/<task>/<model>.<mode>.<split>.jsonl` (every step's

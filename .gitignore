@@ -237,4 +237,5 @@ paper/*
 
 # v1 version of the paper -> excluded from the gitignore above (is on arxiv anyways)
 !paper/arxiv_v1/
-.venv-balrog/
+.venv-babyai/
+.venv-babyai-src/

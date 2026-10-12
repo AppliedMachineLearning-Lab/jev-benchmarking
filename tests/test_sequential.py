@@ -206,7 +206,8 @@ def test_frozenlake_variants():
     assert base[2]["optimal"] == ["up"] and "slippery: the agent moves" in base[0]["rules"]
 
 
-# ---- BabyAI-Text and TextWorld (BALROG's code; run in the environment from scripts/setup_balrog_env.sh) ----
+# ---- BabyAI-Text (original packages; run in the environment from scripts/setup_babyai_text_env.sh) and
+# ---- TextWorld (official generators) ------------------------------------------------------------------
 
 
 def _run_reference(env, spec):
@@ -218,28 +219,27 @@ def _run_reference(env, spec):
     return env.outcome()
 
 
-def test_balrog_babyai_text_bot_solves_and_request_is_balrogs_prompt():
-    pytest.importorskip("balrog")
-    from jev_benchmarking.sequential.envs.balrog_envs import BabyAIText
+def test_babyai_text_original_prompt_and_bot():
+    pytest.importorskip("babyai_text")
+    from jev_benchmarking.sequential.envs.babyai_text import BabyAIText
 
     env = BabyAIText()
     specs = env.episodes("dev", 5)
     env.reset(specs[0])
-    d = env.decision()
-    msgs = d.state["messages"]
-    assert msgs[0]["content"].startswith("You are an agent playing a simple navigation game.")
-    assert msgs[-1]["content"].startswith("Current Observation:")
-    assert set(d.actions.values()) == {"turn left", "turn right", "go forward", "pick up", "drop", "toggle"}
+    prompt = env.decision().state["prompt"]
+    assert prompt.startswith("Possible action of the agent: turn left, turn right, go forward, pick up, drop, toggle")
+    assert "Goal of the agent:" in prompt and prompt.rstrip().endswith("Action 0:")
+    env.reset(specs[0])
+    assert env.decision().state["prompt"] == prompt  # same seed, same episode
     for spec in specs:
         assert _run_reference(env, spec).success
 
 
-def test_balrog_textworld_solver_wins_one_game_per_task():
-    pytest.importorskip("balrog")
-    from jev_benchmarking.sequential.envs.balrog_envs import TextWorld
+def test_textworld_generated_games_solver_wins():
+    pytest.importorskip("textworld")
+    from jev_benchmarking.sequential.envs.textworld_games import TextWorldGames
 
-    env = TextWorld()
-    for spec in env.episodes(limit=3):
-        env.reset(spec)
-        assert env.decision().state["messages"][0]["content"].startswith("You are an agent playing TextWorld")
-        assert _run_reference(env, spec).success
+    env = TextWorldGames()
+    specs = {s.payload["setting"]: s for s in env.episodes(limit=9)}
+    for name in ["coin_collector/level10", "treasure_hunter/level5", "cooking/easy"]:
+        assert _run_reference(env, specs[name]).success

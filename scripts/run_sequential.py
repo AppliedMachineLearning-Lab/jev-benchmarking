@@ -41,13 +41,13 @@ def make_env(name: str):
 
         return alfworld.ALFWorld(), {**alfworld.SCRIPTED, "expert": None}
     if name == "textworld":
-        from jev_benchmarking.sequential.envs import balrog_envs
+        from jev_benchmarking.sequential.envs import textworld_games
 
-        return balrog_envs.TextWorld(), {**balrog_envs.SCRIPTED, "expert": None}
+        return textworld_games.TextWorldGames(), {**textworld_games.SCRIPTED, "expert": None}
     if name == "babyai_text":
-        from jev_benchmarking.sequential.envs import balrog_envs
+        from jev_benchmarking.sequential.envs import babyai_text
 
-        return balrog_envs.BabyAIText(), {**balrog_envs.SCRIPTED, "expert": None}
+        return babyai_text.BabyAIText(), {**babyai_text.SCRIPTED, "expert": None}
     raise SystemExit(f"unknown env {name!r}")
 
 

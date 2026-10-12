@@ -107,6 +107,51 @@ visible GPUs. `scripts/marvin/` contains the Slurm scripts we used on the Marvin
 environment setup, prefetching models and datasets for offline GPU jobs, job arrays, and syncing. Adapt paths,
 partitions and e-mail addresses to your own cluster.
 
+## Sequential decisions
+
+The sequential track lets the model choose the next action in an environment at every step: one request per
+step, with the state and one Choice question over the legal actions, executing the most probable option.
+A reference action is logged at every step (never sent to the model), so step accuracy, ECE and Brier score can
+be reported alongside the success rate.
+
+| Task | Implementation | Episodes | Reference action | Environment |
+|---|---|---|---|---|
+| `alfworld` | ALFWorld (`alfworld` package), unseen split, 50 steps | 134 | handcoded ALFWorld expert | `.venv` + `alfworld-download` |
+| `blackjack` | RLCard `blackjack`, default configuration | 5,000 | exact optimum (DP) | `.venv` |
+| `frozenlake` | Gymnasium `FrozenLake-v1`, slippery, random 4x4 and 8x8 maps | 500 | exact optimum (DP) | `.venv` |
+| `textworld` | TextWorld's `tw-make` challenges (coin collector, treasure hunter, cooking), 3 levels x 10 seeds, 50 steps | 90 | TextWorld solver (`policy_commands`) | `.venv` |
+| `babyai_text` | original BabyAI-Text packages (Carta et al., 2023), `BabyAI-MixedTrainLocal-v0`, their prompt | 250 | BabyAI bot | `.venv-babyai` |
+
+Install the sequential dependencies with `pip install -e ".[sequential]"` (then `alfworld-download` for
+ALFWorld). TextWorld games are generated with `tw-make` on first use and cached in `~/.cache/jev-benchmarking/`.
+BabyAI-Text needs an old gym and numpy and therefore its own environment:
+
+```bash
+bash scripts/setup_babyai_text_env.sh          # creates .venv-babyai (Python 3.10) with the original packages
+source .venv-babyai/bin/activate
+```
+
+The API key can also be put in `.env` or `.env.local` (see `.env.example`).
+
+```bash
+python scripts/run_sequential.py blackjack --backend scripted:optimal          # reference policy, free
+python scripts/run_sequential.py textworld --backend scripted:expert           # expert / solver reference
+python scripts/run_sequential.py frozenlake --dry-run                          # requests and cost estimate
+python scripts/run_sequential.py frozenlake --backend jev --limit 1            # one episode first
+python scripts/run_sequential.py frozenlake --backend jev --max-cost 1.0       # full run
+python scripts/run_sequential.py alfworld --backend jev --shard 0 --num-shards 4   # one of 4 parallel processes
+python scripts/run_sequential.py frozenlake --backend hf:Qwen/Qwen3.8-27B --device auto   # open-weight model
+python scripts/run_sequential.py frozenlake --backend jev --summarize          # metrics only
+python scripts/probe_frozenlake.py --backend jev                               # FrozenLake prompt-variant probe
+```
+
+- **Output:** one JSON line per episode in `results/sequential/<task>/<model>.<mode>.<split>.jsonl` (every step's
+  action, option probabilities, reference action and feedback) and the metrics in `<...>.summary.json`.
+- **Metrics:** success rate (95% bootstrap CI), mean steps, cost per episode, repeat rate, step accuracy against
+  the reference, step ECE and step Brier; for Blackjack and FrozenLake also the regret per decision.
+- **Cache and spend guards:** as for the single-step track; deterministic episodes replay from the cache for free,
+  and runs resume where they stopped.
+
 ## Layout
 
 - `jev_benchmarking/tasks/`: one class per dataset (request construction and gold labels); `probes.py` holds
@@ -117,6 +162,7 @@ partitions and e-mail addresses to your own cluster.
   accuracy, bootstrap confidence intervals
 - `jev_benchmarking/thresholds.py`: per-question Noul thresholds tuned on dev data
 - `jev_benchmarking/report/`: paper tables (LaTeX) and figures (plotnine, tol-colors)
+- `jev_benchmarking/sequential/`: sequential track: environments (`envs/`), episode runner, backends, metrics
 - `scripts/`: entry points; `scripts/marvin/`: Slurm scripts
 - `results/eval/`: per-dataset metrics for Jev; `results/eval/open_models/`: the same for the open-weight models
 - `responses/`: license of the released model responses

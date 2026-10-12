@@ -139,7 +139,7 @@ class TextWorldGames(SequentialEnv):
         return {
             "objective": (self.gs.objective or "").strip(),
             "first_observation": self.first_observation,
-            "current_room": (self.gs.description or "").strip(),
+            "current_room": self._strip(self.gs.description),
             "inventory": (self.gs.inventory or "").strip(),
             "history": list(self.history),
             "steps_taken": self.t,

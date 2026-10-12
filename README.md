@@ -119,7 +119,7 @@ be reported alongside the success rate.
 | `alfworld` | ALFWorld (`alfworld` package), unseen split, 50 steps | 134 | handcoded ALFWorld expert | `.venv` + `alfworld-download` |
 | `blackjack` | RLCard `blackjack`, default configuration | 5,000 | exact optimum (DP) | `.venv` |
 | `frozenlake` | Gymnasium `FrozenLake-v1`, slippery, random 4x4 and 8x8 maps | 500 | exact optimum (DP) | `.venv` |
-| `textworld` | TextWorld's `tw-make` challenges (coin collector, treasure hunter, cooking), 3 levels x 10 seeds, 50 steps | 90 | TextWorld solver (`policy_commands`) | `.venv` |
+| `textworld` | TextWorld's `tw-make` challenges (coin collector, treasure hunter, cooking), 3 levels x 10 seeds, 50 steps; coin collector and treasure hunter with goal-only objectives | 90 | TextWorld solver (`policy_commands`) | `.venv` |
 | `babyai_text` | original BabyAI-Text packages (Carta et al., 2023), `BabyAI-MixedTrainLocal-v0`, their prompt | 250 | BabyAI bot | `.venv-babyai` |
 
 Install the sequential dependencies with `pip install -e ".[sequential]"` (then `alfworld-download` for

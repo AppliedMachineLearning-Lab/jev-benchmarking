@@ -12,10 +12,13 @@ Each challenge is used at three difficulty settings, with 10 games (seeds 1..10)
   cooking          1 ingredient in 1 room; 2 ingredients that need cutting and cooking, in 6 rooms with
                    closed containers and doors; 3 such ingredients in 9 rooms. (The limited-inventory skill,
                    --drop, is not used: TextWorld's solver finds no plan in those games.)
-The games are generated once with the official generator at its default settings and cached; the same
-TextWorld version and seed give the same game. With these defaults, the objective of coin collector and
-treasure hunter games spells out the steps of the quest ("First, move south. And then, ..."); TextWorld's
-option to state only the final goal exists only for custom games, not for these challenges. The request is built as for ALFWorld (objective, first observation, current room,
+The games are generated once with the official generator and cached; the same TextWorld version and seed give
+the same game. With `tw-make`'s defaults, the objective of coin collector and treasure hunter games spells out
+every step of the walkthrough ("First, move south. And then, take a trip east. ..."), which turns them into
+instruction following. These two challenges are therefore generated through the same code path as `tw-make`
+with TextWorld's grammar option `only_last_action` set, which states only the goal ("pick up the coin from the
+floor of the silent cubicle"); the world, the quest and the solver's moves are unchanged. Cooking games use
+`tw-make`'s defaults; their objective never lists the steps. The request is built as for ALFWorld (objective, first observation, current room,
 inventory, full history of commands and feedback, steps left), and the options are the commands TextWorld
 admits in the current state. The reference action is the first command of the winning sequence TextWorld
 computes from the current state (`policy_commands`); the solver knows the whole game, including where unseen
@@ -31,6 +34,7 @@ from jev_benchmarking.sequential.envs.base import ACTION, SUCCESS, Decision, Epi
 from jev_benchmarking.tasks.base import choice, mc_criteria, noul, option_keys
 
 STEP_BUDGET = 50  # as for ALFWorld
+GOAL_ONLY_OBJECTIVE = True  # coin collector and treasure hunter: state the goal, not the walkthrough
 SEEDS = range(1, 11)
 SETTINGS = {  # name -> tw-make arguments
     "coin_collector/level10": ["tw-coin_collector", "--level", "10"],
@@ -53,14 +57,37 @@ def games_dir() -> Path:
 
 
 def game_file(setting: str, seed: int) -> str:
-    """Generate the game with `tw-make` once and return its path."""
-    path = games_dir() / setting / f"seed{seed:02d}.z8"
-    if not path.exists():
-        path.parent.mkdir(parents=True, exist_ok=True)
-        args = list(SETTINGS[setting])
-        if args[0] == "tw-cooking":
-            args += ["--recipe-seed", str(seed)]  # a different recipe per game, as in the FTWP games
+    """Generate the game once and return its path.
+
+    Cooking games are made with the `tw-make` command at its defaults. Coin collector and treasure hunter games
+    are made exactly as `tw-make` makes them (the challenge's own `make` function, then `compile_game`), with
+    one documented generator setting changed: `options.grammar.only_last_action = True`, so that the objective
+    states the goal ("pick up the coin from the floor of the ...") instead of every step of the walkthrough.
+    """
+    args = list(SETTINGS[setting])
+    goal_only = args[0] != "tw-cooking" and GOAL_ONLY_OBJECTIVE
+    path = games_dir() / setting / f"seed{seed:02d}{'.goal' if goal_only else ''}.z8"
+    if path.exists():
+        return str(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if args[0] == "tw-cooking":
+        args += ["--recipe-seed", str(seed)]  # a different recipe per game, as in the FTWP games
         subprocess.run(["tw-make", *args, "--seed", str(seed), "--output", str(path), "--silent", "-f"], check=True)
+        return str(path)
+    import textworld
+    import textworld.challenges
+    from textworld.generator import compile_game
+
+    from jev_benchmarking.sequential.envs import alfworld  # noqa: F401  (TextWorld fix for Python 3.13)
+
+    options = textworld.GameOptions()  # as in tw-make
+    options.seeds = seed
+    options.path = str(path)
+    options.file_ext = ".z8"
+    options.force_recompile = True
+    options.grammar.only_last_action = GOAL_ONLY_OBJECTIVE
+    _, make_game, _ = textworld.challenges.CHALLENGES[args[0]]
+    compile_game(make_game(settings={"level": int(args[2])}, options=options), options)
     return str(path)
 
 

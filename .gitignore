@@ -3,6 +3,8 @@ data/
 logs/
 # open-model JSONL outputs (imported into cache/responses.db)
 runs/
+# sequential episode logs (one JSON line per episode); only their *.summary.json files are tracked
+results/**/*.jsonl
 models/
 cache/*
 deep-dive/

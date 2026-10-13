@@ -1,0 +1,67 @@
+{
+ "env": "frozenlake",
+ "model": "hf:google/gemma-4-E4B-it",
+ "n_episodes": 500,
+ "success_rate": 0.042,
+ "success_ci95": [
+  0.026,
+  0.06
+ ],
+ "mean_steps": 14.014,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.25774225774225773,
+ "step_accuracy_vs_expert": 0.2535110346804242,
+ "step_ece": 0.2503816915080469,
+ "step_brier": 0.8830147747589885,
+ "mean_reward": 0.042,
+ "mean_regret_per_decision": 0.04795624356355043,
+ "details": {
+  "env": "frozenlake",
+  "model": "hf:google/gemma-4-E4B-it",
+  "mode": "greedy",
+  "n_episodes": 500,
+  "success_rate": 0.042,
+  "success_ci95": [
+   0.026,
+   0.06
+  ],
+  "mean_reward": 0.042,
+  "reward_ci95": [
+   0.026,
+   0.06
+  ],
+  "mean_steps": 14.014,
+  "truncated_rate": 0.018,
+  "n_requests": 7007,
+  "input_tokens": 3102374,
+  "tokens_per_request": 442.7535321821036,
+  "cost_usd": 0.0,
+  "mean_latency_s": 0.07604973737963233,
+  "success_by_subset": {
+   "4x4": {
+    "n": 250,
+    "success_rate": 0.08
+   },
+   "8x8": {
+    "n": 250,
+    "success_rate": 0.004
+   }
+  },
+  "repeat_step_rate": 0.25774225774225773,
+  "episodes_with_loop": 0.16,
+  "mean_top_action_prob": 0.504158501962414,
+  "expert_agreement": 0.2535110346804242,
+  "action_vs_expert_calibration": {
+   "n": 6978,
+   "mean_p": 0.5038927261884711,
+   "rate": 0.2535110346804242,
+   "ece": 0.2503816915080469,
+   "brier": 0.8830147747589885
+  },
+  "n_uninformative_steps": 29,
+  "exact": {
+   "optimal_action_rate": 0.25660054231482804,
+   "mean_regret_per_decision": 0.04795624356355043
+  }
+ }
+}

@@ -235,6 +235,20 @@ def test_babyai_text_original_prompt_and_bot():
         assert _run_reference(env, spec).success
 
 
+def test_babyai_text_instructions_variant_only_adds_balrog_prompt():
+    pytest.importorskip("babyai_text")
+    from jev_benchmarking.sequential.envs.babyai_text import BabyAIText
+
+    base, variant = BabyAIText(), BabyAIText(instructions=True)
+    spec = base.episodes("dev", 1)[0]
+    base.reset(spec)
+    variant.reset(spec)
+    a, b = base.decision(), variant.decision()
+    assert variant.name == "babyai_text_instructions" and set(b.state) == {"instructions", "prompt"}
+    assert b.state["prompt"] == a.state["prompt"] and b.oracle == a.oracle and b.actions == a.actions
+    assert "Your goal is to " + base.obs["mission"] + "." in b.state["instructions"]
+
+
 def test_textworld_generated_games_solver_wins():
     pytest.importorskip("textworld")
     from jev_benchmarking.sequential.envs.textworld_games import TextWorldGames

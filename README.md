@@ -121,6 +121,7 @@ be reported alongside the success rate.
 | `frozenlake` | Gymnasium `FrozenLake-v1`, slippery, random 4x4 and 8x8 maps | 500 | exact optimum (DP) | `.venv` |
 | `textworld` | TextWorld's `tw-make` challenges (coin collector, treasure hunter, cooking), 3 levels x 10 seeds, 50 steps; coin collector and treasure hunter with goal-only objectives | 90 | TextWorld solver (`policy_commands`) | `.venv` |
 | `babyai_text` | original BabyAI-Text packages (Carta et al., 2023), `BabyAI-MixedTrainLocal-v0`, their prompt | 250 | BabyAI bot | `.venv-babyai` |
+| `babyai_text_instructions` | diagnostic only: `babyai_text` with BALROG's instruction prompt (action descriptions, two tips) added to the state | 250 | BabyAI bot | `.venv-babyai` |
 
 Install the sequential dependencies with `pip install -e ".[sequential]"` (then `alfworld-download` for
 ALFWorld). TextWorld games are generated with `tw-make` on first use and cached in `~/.cache/jev-benchmarking/`.
@@ -143,6 +144,7 @@ python scripts/run_sequential.py alfworld --backend jev --shard 0 --num-shards 4
 python scripts/run_sequential.py frozenlake --backend hf:Qwen/Qwen3.8-27B --device auto   # open-weight model
 python scripts/run_sequential.py frozenlake --backend jev --summarize          # metrics only
 python scripts/probe_frozenlake.py --backend jev                               # FrozenLake prompt-variant probe
+python scripts/run_sequential.py babyai_text_instructions --backend jev --max-cost 1.0   # BabyAI-Text with BALROG's instruction prompt (diagnostic)
 python scripts/inspect_episode.py frozenlake results/sequential/frozenlake/jev.greedy.eval.jsonl --episode 0   # replay and check one episode
 ```
 

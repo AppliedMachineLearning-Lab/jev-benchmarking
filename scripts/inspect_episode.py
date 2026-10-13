@@ -28,7 +28,7 @@ def show(value, width: int) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("env", choices=["blackjack", "frozenlake", "alfworld", "textworld", "babyai_text"])
+    ap.add_argument("env", choices=["blackjack", "frozenlake", "alfworld", "textworld", "babyai_text", "babyai_text_instructions"])
     ap.add_argument("file", type=Path, help="episode log (.jsonl)")
     ap.add_argument("--episode", type=int, default=0, help="index of the episode in the file")
     ap.add_argument("--uid", help="episode id (overrides --episode)")

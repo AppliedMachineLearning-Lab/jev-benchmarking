@@ -9,6 +9,7 @@ Examples:
   python scripts/run_sequential.py alfworld --backend jev --split eval --max-cost 2.0
   python scripts/run_sequential.py alfworld --backend hf:Qwen/Qwen3.8-27B --device auto
   python scripts/run_sequential.py alfworld --backend jev --shard 3 --num-shards 8        # one of 8 parallel processes
+  python scripts/run_sequential.py babyai_text_instructions --backend jev --max-cost 1.0   # diagnostic prompt variant
   python scripts/run_sequential.py blackjack --backend jev --summarize                    # metrics only (all shards)
 """
 
@@ -48,6 +49,10 @@ def make_env(name: str):
         from jev_benchmarking.sequential.envs import babyai_text
 
         return babyai_text.BabyAIText(), {**babyai_text.SCRIPTED, "expert": None}
+    if name == "babyai_text_instructions":  # diagnostic: BALROG's instruction prompt added to the state
+        from jev_benchmarking.sequential.envs import babyai_text
+
+        return babyai_text.BabyAIText(instructions=True), {**babyai_text.SCRIPTED, "expert": None}
     raise SystemExit(f"unknown env {name!r}")
 
 
@@ -59,7 +64,7 @@ def make_backend(spec: str, env_name: str, scripted: dict, args):
         return OpenModelBackend(model_id, ResponseCache(model=spec), device=args.device)
     if spec.startswith("scripted:"):
         name = spec.split(":", 1)[1]
-        if env_name in ("alfworld", "textworld", "babyai_text") and name == "expert":
+        if env_name in ("alfworld", "textworld", "babyai_text", "babyai_text_instructions") and name == "expert":
             from jev_benchmarking.sequential.envs.alfworld import ExpertBackend
 
             return ExpertBackend.make()
@@ -85,7 +90,7 @@ class _CountingBackend(FunctionBackend):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("env", choices=["blackjack", "frozenlake", "alfworld", "textworld", "babyai_text"])
+    ap.add_argument("env", choices=["blackjack", "frozenlake", "alfworld", "textworld", "babyai_text", "babyai_text_instructions"])
     ap.add_argument("--backend", default="jev", help="jev | hf:<model id> | scripted:<policy>")
     ap.add_argument("--split", default="eval")
     ap.add_argument("--limit", type=int, default=None)
@@ -103,7 +108,7 @@ def main() -> None:
     env, scripted = make_env(args.env)
     env.ask_success = args.ask_success
     if args.dry_run:
-        policy = "expert" if args.env in ("alfworld", "textworld", "babyai_text") else "optimal"
+        policy = "expert" if args.env in ("alfworld", "textworld", "babyai_text", "babyai_text_instructions") else "optimal"
         backend = _CountingBackend(make_backend(f"scripted:{policy}", args.env, scripted, args))
         out = run(env, backend, split=args.split, limit=args.limit, mode=args.mode, out=Path("/dev/null"))
         n_ep = len(env.episodes(args.split, args.limit))

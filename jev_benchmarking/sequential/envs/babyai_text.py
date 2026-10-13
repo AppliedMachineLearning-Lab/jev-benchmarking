@@ -15,6 +15,13 @@ five types, each episode constructs environments until one has the wanted type, 
 objects and mission then depend only on the seed.
 
 The original packages need an old gym and numpy, so this task runs in its own environment.
+
+Diagnostic variant (`babyai_text_instructions`, not part of the main results): the same episodes with the
+instruction prompt that BALROG (Paglieri et al., 2025) gives zero-shot LLMs on this level added to the
+state, copied verbatim (`balrog/environments/babyai_text/__init__.py`, commit b7afe79): the goal, a short
+description of each action, and two tips, one of which says not to repeat an action whose observation does
+not change. The prompt of Carta et al. was written for agents trained with reinforcement learning and
+explains neither the actions nor the rules; the variant tests whether Jev's results depend on that.
 """
 
 from collections import deque
@@ -27,6 +34,15 @@ LEVEL = "BabyAI-MixedTrainLocal-v0"
 ACTIONS = ["turn left", "turn right", "go forward", "pick up", "drop", "toggle"]  # BabyAI action ids 0..5
 KINDS = ["goto", "pickup", "open", "putnext", "pick up seq go to"]
 NBR_OBS = 3
+BALROG_COMMIT = "b7afe79e3e4265811cfa985ed7c95c4d1a11e3f5"
+BALROG_ACTIONS = {  # verbatim from BALROG
+    "turn left": "turn to the left",
+    "turn right": "turn to the right",
+    "go forward": "take one step forward",
+    "pick up": "pick up the object below you",
+    "drop": "drop the object that you are holding",
+    "toggle": "manipulate the object in front of you",
+}
 
 ACTION_Q_TEXT = "Which action should the agent take next?"
 SUCCESS_Q = noul("Will the agent reach its goal before running out of steps?")
@@ -54,14 +70,38 @@ def generate_prompt(goal, subgoals, deque_obs, deque_actions):
     return head_prompt + g + obs
 
 
+def balrog_instruction_prompt(mission):
+    """Verbatim copy of get_instruction_prompt (BALROG, balrog/environments/babyai_text/__init__.py)."""
+    action_strings = ",\n".join(f"{action}: {description}" for action, description in BALROG_ACTIONS.items())
+
+    instruction_prompt = f"""
+You are an agent playing a simple navigation game. Your goal is to {mission}. The following are the possible actions you can take in the game, followed by a short description of each action:
+
+{action_strings}.
+
+In a moment I will present you an observation.
+
+Tips:
+- Once the desired object you want to interact or pickup in front of you, you can use the 'toggle' action to interact with it.
+- It doesn't make sense to repeat the same action over and over if the observation doesn't change.
+
+PLAY!
+""".strip()
+
+    return instruction_prompt
+
+
 class BabyAIText(SequentialEnv):
     name = "babyai_text"
     description = "BabyAI-Text, original code of Carta et al. (MixedTrainLocal, 8 distractors, their prompt); BabyAI bot reference."
     DEFAULT_N = {"eval": 250, "dev": 50}
     SEED_OFFSET = {"eval": 0, "dev": 100_000}
 
-    def __init__(self, ask_success: bool = False):
+    def __init__(self, ask_success: bool = False, instructions: bool = False):
         self.ask_success = ask_success
+        self.instructions = instructions  # diagnostic variant, see module docstring
+        if instructions:
+            self.name = "babyai_text_instructions"
         self.env = None
         self.max_steps = 128
 
@@ -97,8 +137,12 @@ class BabyAIText(SequentialEnv):
         self.result: StepResult | None = None
 
     def state(self) -> dict:
-        """The prompt of Carta et al., exactly as their agents receive it."""
-        return {"prompt": generate_prompt(self.obs["mission"], ACTIONS, self.obs_queue, self.acts_queue)}
+        """The prompt of Carta et al., exactly as their agents receive it (in the diagnostic variant preceded by
+        BALROG's instruction prompt)."""
+        prompt = generate_prompt(self.obs["mission"], ACTIONS, self.obs_queue, self.acts_queue)
+        if self.instructions:
+            return {"instructions": balrog_instruction_prompt(self.obs["mission"]), "prompt": prompt}
+        return {"prompt": prompt}
 
     def _reference(self) -> str | None:
         try:

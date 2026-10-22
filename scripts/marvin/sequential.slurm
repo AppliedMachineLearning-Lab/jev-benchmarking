@@ -14,7 +14,8 @@
 #   JEV_MODEL=google/gemma-4-E4B-it SHARDS=4 SCRIPT=sequential.slurm scripts/marvin/submit.sh
 #
 # Environment (set by submit.sh):
-#   JEV_MODEL  (default google/gemma-4-E4B-it)   JEV_TASKS (environment, default alfworld)
+#   JEV_MODEL  (default google/gemma-4-E4B-it)   JEV_TASKS (environment, default alfworld; also blackjack,
+#                                                frozenlake, textworld, babyai_text)
 #   JEV_SPLIT  (default eval)                    JEV_LIMIT (default: none = all episodes)
 #   JEV_RUN    name of the per-shard response caches under $JEV_WS/seqcache/
 #   JEV_DEVICE (default cuda; "auto" splits a model that does not fit one GPU over all allocated GPUs)
@@ -23,6 +24,7 @@ source "$HOME/${JEV_REMOTE_DIR:-jev-benchmarking}/scripts/marvin/common.sh"
 export HF_HUB_OFFLINE=1 HF_DATASETS_OFFLINE=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 export ALFWORLD_DATA="$JEV_WS/alfworld"
+export TEXTWORLD_GAMES="$JEV_WS/textworld-games"   # Raj's 90 games, copied from the laptop (never regenerated here)
 
 MODEL="${JEV_MODEL:-google/gemma-4-E4B-it}"
 ENV_NAME="${JEV_TASKS:-alfworld}"
@@ -33,6 +35,9 @@ SHARD="${SLURM_ARRAY_TASK_ID:-0}"
 NSHARDS="${SLURM_ARRAY_TASK_COUNT:-1}"
 LIMIT_ARG=()
 [ -n "${JEV_LIMIT:-}" ] && LIMIT_ARG=(--limit "$JEV_LIMIT")
+# BabyAI-Text needs the old gym/numpy of its original packages, hence its own environment.
+PYTHON="$JEV_VENV/bin/python"
+case "$ENV_NAME" in babyai_text*) PYTHON="$JEV_BABYAI_VENV/bin/python" ;; esac
 # One SQLite cache per shard: WAL locking is not safe across nodes on Lustre. Merged locally afterwards.
 export JEV_CACHE_DB="$JEV_WS/seqcache/$RUN/shard$(printf %02d "$SHARD")/responses.db"
 
@@ -40,6 +45,6 @@ echo "=== job ${SLURM_JOB_ID:-?} shard $SHARD/$NSHARDS on $(hostname): $MODEL, e
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
 cd "$HOME/$JEV_REMOTE_DIR"
-"$JEV_VENV/bin/python" scripts/run_sequential.py "$ENV_NAME" \
+"$PYTHON" scripts/run_sequential.py "$ENV_NAME" \
     --backend "hf:$MODEL" --split "$SPLIT" "${LIMIT_ARG[@]}" \
     --shard "$SHARD" --num-shards "$NSHARDS" --device "${JEV_DEVICE:-cuda}"

@@ -1,0 +1,73 @@
+{
+ "env": "babyai_text",
+ "model": "hf:google/gemma-4-E4B-it",
+ "n_episodes": 250,
+ "success_rate": 0.048,
+ "success_ci95": [
+  0.024,
+  0.076
+ ],
+ "mean_steps": 99.64,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.9106382978723404,
+ "step_accuracy_vs_expert": 0.020754716981132074,
+ "step_ece": 0.825608363414446,
+ "step_brier": 1.6242277015439617,
+ "details": {
+  "env": "babyai_text",
+  "model": "hf:google/gemma-4-E4B-it",
+  "mode": "greedy",
+  "n_episodes": 250,
+  "success_rate": 0.048,
+  "success_ci95": [
+   0.024,
+   0.076
+  ],
+  "mean_reward": 0.048,
+  "reward_ci95": [
+   0.024,
+   0.076
+  ],
+  "mean_steps": 99.64,
+  "truncated_rate": 0.952,
+  "n_requests": 24910,
+  "input_tokens": 10249525,
+  "tokens_per_request": 411.4622641509434,
+  "cost_usd": 0.0,
+  "mean_latency_s": 0.06529977985690699,
+  "success_by_subset": {
+   "goto": {
+    "n": 50,
+    "success_rate": 0.18
+   },
+   "open": {
+    "n": 50,
+    "success_rate": 0.0
+   },
+   "pick_up_seq_go_to": {
+    "n": 50,
+    "success_rate": 0.0
+   },
+   "pickup": {
+    "n": 50,
+    "success_rate": 0.06
+   },
+   "putnext": {
+    "n": 50,
+    "success_rate": 0.0
+   }
+  },
+  "repeat_step_rate": 0.9106382978723404,
+  "episodes_with_loop": 0.876,
+  "mean_top_action_prob": 0.8463092457053415,
+  "expert_agreement": 0.020754716981132074,
+  "action_vs_expert_calibration": {
+   "n": 24910,
+   "mean_p": 0.8463092457053415,
+   "rate": 0.020754716981132074,
+   "ece": 0.825608363414446,
+   "brier": 1.6242277015439617
+  },
+  "n_uninformative_steps": 0
+ }
+}

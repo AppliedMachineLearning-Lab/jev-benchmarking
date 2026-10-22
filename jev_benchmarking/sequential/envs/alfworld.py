@@ -17,6 +17,7 @@ Setup: `pip install "alfworld[full]"` and `alfworld-download` (about 2 GB into $
 import glob
 import hashlib
 import os
+import random
 import re
 import sys
 
@@ -82,6 +83,10 @@ class ALFWorld(SequentialEnv):
         from alfworld.agents.environment.alfred_tw_env import AlfredDemangler, AlfredExpert, AlfredExpertType, AlfredInfos
 
         self.close()
+        # The handcoded expert breaks ties with Python's global random.choice (alfworld's handcoded_expert.py), so
+        # its commands, and with them the expert labels, would change between runs. Seeding the global generator
+        # per episode makes them reproducible; the model's requests do not depend on it.
+        random.seed(int(hashlib.sha256(f"alfworld-expert/{spec.uid}".encode()).hexdigest()[:16], 16))
         extras = ["gamefile"] + (["expert_plan"] if self.with_expert else [])
         infos = textworld.EnvInfos(won=True, admissible_commands=True, facts=self.with_expert, extras=extras)
         wrappers = [AlfredDemangler(shuffle=False), AlfredInfos]

@@ -137,6 +137,7 @@ The API key can also be put in `.env` or `.env.local` (see `.env.example`).
 ```bash
 python scripts/run_sequential.py blackjack --backend scripted:optimal          # reference policy, free
 python scripts/run_sequential.py textworld --backend scripted:expert           # expert / solver reference
+python scripts/run_sequential.py frozenlake --backend scripted:random --mode sample   # uniform policy (greedy would always move left)
 python scripts/run_sequential.py frozenlake --dry-run                          # requests and cost estimate
 python scripts/run_sequential.py frozenlake --backend jev --limit 1            # one episode first
 python scripts/run_sequential.py frozenlake --backend jev --max-cost 1.0       # full run
@@ -148,6 +149,13 @@ python scripts/run_sequential.py babyai_text_instructions --backend jev --max-co
 python scripts/inspect_episode.py frozenlake results/sequential/frozenlake/jev.greedy.eval.jsonl --episode 0   # replay and check one episode
 ```
 
+- **Uniform reference policies:** `scripted:random` gives every action the same probability. Run it with
+  `--mode sample`; under the default `--mode greedy` the tie always goes to the first action (in FrozenLake, "left").
+- **Expert labels:** the ALFWorld handcoded expert breaks ties with Python's `random`; the environment seeds it per
+  episode, so the expert's commands are reproducible. The TextWorld expert follows TextWorld's `policy_commands`,
+  which can choose a different (equally winning) plan on a different platform or Python version: on the archived
+  games the expert needs 851 steps in total on Linux (Python 3.13) and 863 on macOS (Python 3.12). Model trajectories
+  do not depend on the expert.
 - **Output:** one JSON line per episode in `results/sequential/<task>/<model>.<mode>.<split>.jsonl` (every step's
   action, option probabilities, reference action and feedback) and the metrics in `<...>.summary.json`.
 - **Metrics:** success rate (95% bootstrap CI), mean steps, cost per episode, repeat rate, step accuracy against

@@ -5,6 +5,7 @@ Examples:
   python scripts/run_sequential.py blackjack --dry-run --limit 5000                       # token/cost estimate
   python scripts/run_sequential.py blackjack --backend jev --limit 5000 --max-cost 1.0
   python scripts/run_sequential.py frozenlake --backend scripted:optimal --limit 500
+  python scripts/run_sequential.py frozenlake --backend scripted:random --mode sample  # uniform policy: needs --mode sample
   python scripts/run_sequential.py alfworld --backend scripted:expert                     # expert reference
   python scripts/run_sequential.py alfworld --backend jev --split eval --max-cost 2.0
   python scripts/run_sequential.py alfworld --backend hf:Qwen/Qwen3.8-27B --device auto
@@ -94,7 +95,9 @@ def main() -> None:
     ap.add_argument("--backend", default="jev", help="jev | hf:<model id> | scripted:<policy>")
     ap.add_argument("--split", default="eval")
     ap.add_argument("--limit", type=int, default=None)
-    ap.add_argument("--mode", default="greedy", choices=["greedy", "sample"])
+    ap.add_argument("--mode", default="greedy", choices=["greedy", "sample"],
+                    help="greedy: most probable action; sample: draw from the probabilities (needed for scripted:random, "
+                         "whose uniform probabilities always resolve to the first action under greedy)")
     ap.add_argument("--ask-success", action="store_true", help="also ask the optional success question at every step")
     ap.add_argument("--max-cost", type=float, default=0.5, help="USD cap for this run (Jev only)")
     ap.add_argument("--device", default="cuda")

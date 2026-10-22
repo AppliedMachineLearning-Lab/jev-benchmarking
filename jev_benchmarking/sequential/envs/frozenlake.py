@@ -297,6 +297,8 @@ def optimal_policy(state: dict, questions: dict) -> dict:
 
 
 def random_policy(state: dict, questions: dict) -> dict:
+    """Uniform over the four moves. Run it with `--mode sample`: with `--mode greedy` the tie between equal
+    probabilities always goes to the first move ("left"), which is not a random policy."""
     from jev_benchmarking.sequential.backends import choice_answer, noul_answer
 
     return _only_asked(questions, {ACTION: choice_answer({m: 0.25 for m in MOVES}), SUCCESS: noul_answer(0.5)})

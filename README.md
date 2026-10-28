@@ -193,7 +193,7 @@ Apache License 2.0.
 ```bibtex
 @misc{deußer2026evaluatingbenchmarkingmodeljev,
       title={Evaluating and Benchmarking the System One Model Jev}, 
-      author={Tobias Deußer and Lorenz Sparrenberg and Rafet Sifa},
+      author={Tobias Deußer and Rajkumar Ramamurthy and Lorenz Sparrenberg and Rafet Sifa},
       year={2026},
       eprint={2609.37647},
       archivePrefix={arXiv},

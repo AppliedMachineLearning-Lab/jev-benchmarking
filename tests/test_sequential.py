@@ -1,0 +1,259 @@
+"""Sequential track: exact Blackjack values, episode determinism, cache replay, metrics. No network."""
+
+import json
+
+import httpx2
+import numpy as np
+import pytest
+
+from jev_benchmarking.cache import ResponseCache
+from jev_benchmarking.sequential.backends import BudgetExceeded, FunctionBackend, JevBackend
+from jev_benchmarking.sequential.envs.base import ACTION, SUCCESS
+from jev_benchmarking.sequential.envs.blackjack import FULL_DECK, SCRIPTED, Blackjack, dealer_final, state_values
+from jev_benchmarking.sequential.metrics import repeat_metrics, summarize
+from jev_benchmarking.sequential.runner import load_episodes, run, run_episode
+
+
+@pytest.fixture(autouse=True)
+def fake_key(monkeypatch):
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+
+
+# ---- exact values ----------------------------------------------------------------------------------
+
+
+def test_dealer_distribution_sums_to_one():
+    for up in range(1, 11):
+        assert sum(p for _, p in dealer_final(up, up == 1, FULL_DECK)) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize(
+    "cards,up,best",
+    [  # single-deck basic strategy incl. the composition-dependent 10-3 v 2 and 10-2 v 4 hits (hit or stand only, dealer stands on soft 17)
+        (["10", "2"], "7", "hit"), (["9", "4"], "2", "stand"), (["10", "3"], "2", "hit"), (["10", "2"], "4", "hit"), (["10", "6"], "10", "hit"),
+        (["10", "6"], "6", "stand"), (["10", "7"], "10", "stand"), (["5", "6"], "10", "hit"),
+        (["A", "6"], "9", "hit"), (["A", "8"], "10", "stand"), (["10", "10"], "A", "stand"),
+    ],
+)
+def test_basic_strategy(cards, up, best):
+    assert state_values(cards, up)["best"] == best
+
+
+def test_exact_values_match_simulation():
+    env, backend = Blackjack(), FunctionBackend("optimal", SCRIPTED["optimal"])
+    eps = [run_episode(env, s, backend) for s in env.episodes("dev", 4000)]
+    first = [(e["steps"][0]["oracle"]["p_win"], e["success"]) for e in eps if e["steps"]]
+    p, y = map(np.array, zip(*first))
+    # mean predicted win probability vs observed win rate, within ~3 standard errors
+    assert abs(p.mean() - y.mean()) < 3 * np.sqrt(p.mean() * (1 - p.mean()) / len(p))
+
+
+def test_episodes_are_deterministic():
+    env, backend = Blackjack(), FunctionBackend("random", SCRIPTED["random"])
+    spec = env.episodes("eval", 50)[17]
+    a = run_episode(env, spec, backend, mode="sample")
+    b = run_episode(env, spec, backend, mode="sample")
+    assert [s["action"] for s in a["steps"]] == [s["action"] for s in b["steps"]] and a["reward"] == b["reward"]
+
+
+# ---- Jev backend against a fake API -----------------------------------------------------------------
+
+
+def fake_api(calls: list):
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        body = json.loads(request.content)
+        calls.append(body)
+        hit = body["state"]["player_total"] < 15
+        answers = {
+            ACTION: {"type": "choice", "choice": "hit" if hit else "stand",
+                     "probabilities": {"hit": 0.8 if hit else 0.2, "stand": 0.2 if hit else 0.8}, "confidence": 0.6},
+            SUCCESS: {"type": "noul", "noul": 0.4},
+        }
+        return httpx2.Response(200, json={"model": "jev-1.13.0", "answers": answers, "usage": {"input_tokens": 600, "output_tokens": 0}})
+
+    return httpx2.MockTransport(handler)
+
+
+def test_jev_episodes_replay_from_cache(tmp_path):
+    calls = []
+    cache = ResponseCache(tmp_path / "r.db", model="jev-1.13.0")
+    env = Blackjack()
+    out = tmp_path / "eps.jsonl"
+    run(env, JevBackend(cache, max_cost_usd=1.0, transport=fake_api(calls)), limit=30, out=out)
+    n_first = len(calls)
+    assert n_first > 0 and len(load_episodes(out)) == 30
+    out.unlink()  # forget the episodes, keep the cache: a replay must not call the API again
+    run(env, JevBackend(cache, max_cost_usd=1.0, transport=fake_api(calls)), limit=30, out=out)
+    assert len(calls) == n_first
+    assert len(load_episodes(out)) == 30
+
+
+def test_budget_cap_stops_run(tmp_path):
+    calls = []
+    cache = ResponseCache(tmp_path / "r.db", model="jev-1.13.0")
+    backend = JevBackend(cache, max_cost_usd=0.0001, transport=fake_api(calls))  # ~2,400 tokens
+    out = tmp_path / "eps.jsonl"
+    run(Blackjack(), backend, limit=200, out=out)
+    assert backend.stats.cost_usd <= 0.0001 and len(load_episodes(out)) < 200
+
+
+def test_sharding_partitions_episodes(tmp_path):
+    env, backend = Blackjack(), FunctionBackend("optimal", SCRIPTED["optimal"])
+    for shard in range(3):
+        run(env, backend, limit=60, out=tmp_path / f"m.greedy.eval.shard{shard:02d}of03.jsonl", shard=shard, num_shards=3)
+    eps = load_episodes(tmp_path / "m.greedy.eval.jsonl")
+    assert sorted(e["uid"] for e in eps) == [s.uid for s in env.episodes("eval", 60)]
+
+
+# ---- metrics ---------------------------------------------------------------------------------------
+
+
+def test_metrics_reference_policy_is_exact():
+    env, backend = Blackjack(ask_success=True), FunctionBackend("optimal", SCRIPTED["optimal"])
+    s = summarize([run_episode(env, sp, backend) for sp in env.episodes("eval", 500)])
+    assert s["step_accuracy_vs_expert"] == 1.0 and s["step_ece"] == pytest.approx(0.0)
+    assert s["mean_regret_per_decision"] == pytest.approx(0.0)
+    assert s["success_estimate_mae_vs_exact"] == pytest.approx(0.0)
+
+
+def test_metrics_weak_policy_has_regret():
+    env, backend = Blackjack(), FunctionBackend("never_bust", SCRIPTED["never_bust"])
+    s = summarize([run_episode(env, sp, backend) for sp in env.episodes("eval", 500)])
+    assert s["step_accuracy_vs_expert"] < 0.9 and s["mean_regret_per_decision"] > 0
+
+
+def test_repeat_metrics_catch_repeats_and_oscillations():
+    step = lambda a, f: {"action": a, "feedback": f}  # noqa: E731
+    looping = {"steps": [step("go to desk 1", "desk"), step("examine desk 1", "same"), step("examine desk 1", "same"),
+                         step("examine desk 1", "same"), step("examine desk 1", "same"), step("go to desk 2", "clock")]}
+    oscillating = {"steps": [step("open microwave 1", "open"), step("close microwave 1", "closed"),
+                             step("open microwave 1", "open"), step("close microwave 1", "closed"),
+                             step("open microwave 1", "open")]}
+    revisit = {"steps": [step("go to fridge 1", "closed"), step("go to sink 1", "sink"), step("go to table 1", "t"),
+                         step("go to fridge 1", "closed")]}
+    m = repeat_metrics([looping, oscillating, revisit])
+    assert m["repeat_step_rate"] == pytest.approx((3 + 3 + 0) / 15)
+    assert m["episodes_with_loop"] == pytest.approx(2 / 3)
+
+def test_step_brier_matches_single_step_choice_brier():
+    """The step-level Brier must equal metrics.choice_metrics' multiclass Brier with the expert as gold."""
+    from jev_benchmarking.metrics import choice_metrics
+
+    probs = [{"A": 0.9, "B": 0.05, "C": 0.05}, {"A": 0.6, "B": 0.3, "C": 0.1}, {"A": 0.2, "B": 0.7, "C": 0.1}]
+    experts = ["A", "B", "B"]
+    steps = [{"t": i, "action": max(p, key=p.get), "probs": p, "p_success": None, "oracle": {"expert": e},
+              "input_tokens": 0, "cached": False, "latency_s": 0.0, "feedback": str(i)} for i, (p, e) in enumerate(zip(probs, experts))]
+    ep = {"env": "x", "model": "m", "mode": "greedy", "subset": "", "success": True, "reward": 1.0, "n_steps": 3, "steps": steps}
+    seq = summarize([ep])["details"]["action_vs_expert_calibration"]
+    single = choice_metrics(experts, [{"choice": max(p, key=p.get), "probabilities": p, "confidence": 0.0} for p in probs])
+    assert seq["brier"] == pytest.approx(single["brier"])
+    assert seq["ece"] == pytest.approx(single["ece"])
+
+
+def test_success_question_is_off_by_default():
+    env = Blackjack()
+    env.reset(env.episodes("eval", 5)[1])
+    d = env.decision()
+    assert d is None or set(d.questions) == {ACTION}
+    env = Blackjack(ask_success=True)
+    env.reset(env.episodes("eval", 5)[1])
+    d = env.decision()
+    assert d is None or set(d.questions) == {ACTION, SUCCESS}
+
+
+# ---- FrozenLake -----------------------------------------------------------------------------------
+
+
+def test_frozenlake_exact_values_match_simulation():
+    from jev_benchmarking.sequential.envs.frozenlake import SCRIPTED as FL, FrozenLake
+
+    env, backend = FrozenLake(), FunctionBackend("optimal", FL["optimal"])
+    eps = [run_episode(env, s, backend) for s in env.episodes("dev", 400) if s.subset == "4x4"]
+    p = np.array([e["steps"][0]["oracle"]["p_win"] for e in eps])
+    y = np.array([e["success"] for e in eps], dtype=float)
+    assert abs(p.mean() - y.mean()) < 3 * np.sqrt(p.mean() * (1 - p.mean()) / len(p))
+    s = summarize(eps)
+    assert s["step_accuracy_vs_expert"] == 1.0 and s["mean_regret_per_decision"] == pytest.approx(0.0, abs=1e-12)
+
+
+def test_frozenlake_wall_hugging_start():
+    """Holes directly below the start: only 'up' cannot fall (it slips left or right along the edge)."""
+    from jev_benchmarking.sequential.envs.frozenlake import state_values
+
+    v = state_values(("SFFF", "HHFF", "FHHF", "HFFG"), 0, 0, 100, 100)
+    assert v["optimal"] == ["up"] and v["q"]["down"] < v["q"]["up"]
+
+
+def test_tied_optimal_actions_form_one_gold_class():
+    probs = {"left": 0.4, "down": 0.4, "right": 0.1, "up": 0.1}
+    step = {"t": 0, "action": "left", "probs": probs, "p_success": None, "n_actions": 4, "feedback": "",
+            "oracle": {"optimal": ["left", "down"], "q": {"left": .5, "down": .5, "right": .2, "up": .1}},
+            "input_tokens": 0, "cached": False, "latency_s": 0.0}
+    ep = {"env": "x", "model": "m", "mode": "greedy", "subset": "", "success": True, "reward": 1.0, "n_steps": 1, "steps": [step]}
+    cal = summarize([ep])["details"]["action_vs_expert_calibration"]
+    assert cal["brier"] == pytest.approx((0.8 - 1) ** 2 + 0.1 ** 2 + 0.1 ** 2)
+
+
+def test_frozenlake_variants():
+    from jev_benchmarking.sequential.envs.frozenlake import build_request
+
+    desc = ("SFFF", "HHFF", "FHHF", "HFFG")
+    s, q, o = build_request(desc, 0, 0, 0, 100, "outcomes")
+    assert "HOLE" in q["action"]["criteria"]["right"] and "HOLE" not in q["action"]["criteria"]["up"]
+    s, q, o = build_request(desc, 0, 0, 0, 100, "deterministic")
+    assert "not slippery" in s["rules"] and o["optimal"] == ["right"] and o["distance"] == 6
+    base = build_request(desc, 0, 0, 0, 100, "base")
+    assert base[2]["optimal"] == ["up"] and "slippery: the agent moves" in base[0]["rules"]
+
+
+# ---- BabyAI-Text (original packages; run in the environment from scripts/setup_babyai_text_env.sh) and
+# ---- TextWorld (official generators) ------------------------------------------------------------------
+
+
+def _run_reference(env, spec):
+    env.reset(spec)
+    while (d := env.decision()) is not None:
+        key = next(k for k, a in d.actions.items() if a == d.oracle["expert"])
+        if env.step(d.actions[key]).done:
+            break
+    return env.outcome()
+
+
+def test_babyai_text_original_prompt_and_bot():
+    pytest.importorskip("babyai_text")
+    from jev_benchmarking.sequential.envs.babyai_text import BabyAIText
+
+    env = BabyAIText()
+    specs = env.episodes("dev", 5)
+    env.reset(specs[0])
+    prompt = env.decision().state["prompt"]
+    assert prompt.startswith("Possible action of the agent: turn left, turn right, go forward, pick up, drop, toggle")
+    assert "Goal of the agent:" in prompt and prompt.rstrip().endswith("Action 0:")
+    env.reset(specs[0])
+    assert env.decision().state["prompt"] == prompt  # same seed, same episode
+    for spec in specs:
+        assert _run_reference(env, spec).success
+
+
+def test_babyai_text_instructions_variant_only_adds_balrog_prompt():
+    pytest.importorskip("babyai_text")
+    from jev_benchmarking.sequential.envs.babyai_text import BabyAIText
+
+    base, variant = BabyAIText(), BabyAIText(instructions=True)
+    spec = base.episodes("dev", 1)[0]
+    base.reset(spec)
+    variant.reset(spec)
+    a, b = base.decision(), variant.decision()
+    assert variant.name == "babyai_text_instructions" and set(b.state) == {"instructions", "prompt"}
+    assert b.state["prompt"] == a.state["prompt"] and b.oracle == a.oracle and b.actions == a.actions
+    assert "Your goal is to " + base.obs["mission"] + "." in b.state["instructions"]
+
+
+def test_textworld_generated_games_solver_wins():
+    pytest.importorskip("textworld")
+    from jev_benchmarking.sequential.envs.textworld_games import TextWorldGames
+
+    env = TextWorldGames()
+    specs = {s.payload["setting"]: s for s in env.episodes(limit=9)}
+    for name in ["coin_collector/level10", "treasure_hunter/level5", "cooking/easy"]:
+        assert _run_reference(env, specs[name]).success

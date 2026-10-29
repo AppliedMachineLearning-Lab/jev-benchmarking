@@ -1,0 +1,73 @@
+{
+ "env": "babyai_text_instructions",
+ "model": "jev-1.13.0",
+ "n_episodes": 250,
+ "success_rate": 0.256,
+ "success_ci95": [
+  0.2039,
+  0.308
+ ],
+ "mean_steps": 83.712,
+ "cost_per_episode_usd": 0.0030082219440000003,
+ "repeat_step_rate": 0.6270546636085627,
+ "step_accuracy_vs_expert": 0.14099316541604934,
+ "step_ece": 0.38699612866223776,
+ "step_brier": 1.0275754146154952,
+ "details": {
+  "env": "babyai_text_instructions",
+  "model": "jev-1.13.0",
+  "mode": "greedy",
+  "n_episodes": 250,
+  "success_rate": 0.256,
+  "success_ci95": [
+   0.2039,
+   0.308
+  ],
+  "mean_reward": 0.256,
+  "reward_ci95": [
+   0.2039,
+   0.308
+  ],
+  "mean_steps": 83.712,
+  "truncated_rate": 0.744,
+  "n_requests": 20928,
+  "input_tokens": 17906083,
+  "tokens_per_request": 855.604118883792,
+  "cost_usd": 0.752055486,
+  "mean_latency_s": 0.22951467576791806,
+  "success_by_subset": {
+   "goto": {
+    "n": 50,
+    "success_rate": 0.5
+   },
+   "open": {
+    "n": 50,
+    "success_rate": 0.02
+   },
+   "pick_up_seq_go_to": {
+    "n": 50,
+    "success_rate": 0.28
+   },
+   "pickup": {
+    "n": 50,
+    "success_rate": 0.44
+   },
+   "putnext": {
+    "n": 50,
+    "success_rate": 0.04
+   }
+  },
+  "repeat_step_rate": 0.6270546636085627,
+  "episodes_with_loop": 0.444,
+  "mean_top_action_prob": 0.5279993310397554,
+  "expert_agreement": 0.14099316541604934,
+  "action_vs_expert_calibration": {
+   "n": 20923,
+   "mean_p": 0.5279892940782871,
+   "rate": 0.14099316541604934,
+   "ece": 0.38699612866223776,
+   "brier": 1.0275754146154952
+  },
+  "n_uninformative_steps": 5
+ }
+}

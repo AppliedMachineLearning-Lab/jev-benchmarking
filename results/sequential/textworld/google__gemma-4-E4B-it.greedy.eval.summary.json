@@ -1,0 +1,65 @@
+{
+ "env": "textworld",
+ "model": "hf:google/gemma-4-E4B-it",
+ "n_episodes": 90,
+ "success_rate": 0.12222222222222222,
+ "success_ci95": [
+  0.05555555555555555,
+  0.2
+ ],
+ "mean_steps": 32.044444444444444,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.5537447988904299,
+ "step_accuracy_vs_expert": 0.2555478502080444,
+ "step_ece": 0.42615708255039597,
+ "step_brier": 1.0885112882340306,
+ "details": {
+  "env": "textworld",
+  "model": "hf:google/gemma-4-E4B-it",
+  "mode": "greedy",
+  "n_episodes": 90,
+  "success_rate": 0.12222222222222222,
+  "success_ci95": [
+   0.05555555555555555,
+   0.2
+  ],
+  "mean_reward": 0.1741161616161616,
+  "reward_ci95": [
+   0.10744844276094276,
+   0.245162037037037
+  ],
+  "mean_steps": 32.044444444444444,
+  "truncated_rate": 0.5666666666666667,
+  "n_requests": 2884,
+  "input_tokens": 5404791,
+  "tokens_per_request": 1874.0606796116506,
+  "cost_usd": 0.0,
+  "mean_latency_s": 0.154602080443828,
+  "success_by_subset": {
+   "coin_collector": {
+    "n": 30,
+    "success_rate": 0.06666666666666667
+   },
+   "cooking": {
+    "n": 30,
+    "success_rate": 0.03333333333333333
+   },
+   "treasure_hunter": {
+    "n": 30,
+    "success_rate": 0.26666666666666666
+   }
+  },
+  "repeat_step_rate": 0.5537447988904299,
+  "episodes_with_loop": 0.6,
+  "mean_top_action_prob": 0.6817049327584404,
+  "expert_agreement": 0.2555478502080444,
+  "action_vs_expert_calibration": {
+   "n": 2884,
+   "mean_p": 0.6817049327584404,
+   "rate": 0.2555478502080444,
+   "ece": 0.42615708255039597,
+   "brier": 1.0885112882340306
+  },
+  "n_uninformative_steps": 0
+ }
+}

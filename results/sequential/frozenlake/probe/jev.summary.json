@@ -1,0 +1,85 @@
+{
+ "base": {
+  "n": 500,
+  "step_accuracy": 0.32,
+  "accuracy_optimal_toward_goal": 0.49079754601226994,
+  "accuracy_optimal_away_from_goal": 0.0,
+  "share_optimal_away": 0.348,
+  "mean_prob_on_optimal": 0.30744,
+  "mean_top_prob": 0.7176400000000001,
+  "top_prob_when_right": 0.7049375,
+  "top_prob_when_wrong": 0.7236176470588236,
+  "ece": 0.39764,
+  "brier": 1.0050257999999999,
+  "choices": {
+   "left": 0,
+   "down": 232,
+   "right": 268,
+   "up": 0
+  },
+  "mean_regret": 0.0905990538107472,
+  "choice_can_slip_into_hole": 0.394
+ },
+ "safety": {
+  "n": 500,
+  "step_accuracy": 0.37,
+  "accuracy_optimal_toward_goal": 0.5153374233128835,
+  "accuracy_optimal_away_from_goal": 0.09770114942528736,
+  "share_optimal_away": 0.348,
+  "mean_prob_on_optimal": 0.32998,
+  "mean_top_prob": 0.52318,
+  "top_prob_when_right": 0.5265405405405406,
+  "top_prob_when_wrong": 0.5212063492063492,
+  "ece": 0.1697,
+  "brier": 0.751075,
+  "choices": {
+   "left": 11,
+   "down": 238,
+   "right": 221,
+   "up": 30
+  },
+  "mean_regret": 0.084446268192199,
+  "choice_can_slip_into_hole": 0.368
+ },
+ "outcomes": {
+  "n": 500,
+  "step_accuracy": 0.624,
+  "accuracy_optimal_toward_goal": 0.6288343558282209,
+  "accuracy_optimal_away_from_goal": 0.6149425287356322,
+  "share_optimal_away": 0.348,
+  "mean_prob_on_optimal": 0.5123199999999999,
+  "mean_top_prob": 0.66638,
+  "top_prob_when_right": 0.6833653846153845,
+  "top_prob_when_wrong": 0.6381914893617021,
+  "ece": 0.08410000000000001,
+  "brier": 0.5449449999999999,
+  "choices": {
+   "left": 56,
+   "down": 185,
+   "right": 202,
+   "up": 57
+  },
+  "mean_regret": 0.01964025598194977,
+  "choice_can_slip_into_hole": 0.128
+ },
+ "deterministic": {
+  "n": 500,
+  "step_accuracy": 0.838,
+  "accuracy_optimal_toward_goal": 0.8991416309012875,
+  "accuracy_optimal_away_from_goal": 0.0,
+  "share_optimal_away": 0.068,
+  "mean_prob_on_optimal": 0.80752,
+  "mean_top_prob": 0.81322,
+  "top_prob_when_right": 0.8232219570405728,
+  "top_prob_when_wrong": 0.7614814814814814,
+  "ece": 0.07310000000000001,
+  "brier": 0.23780759999999998,
+  "choices": {
+   "left": 0,
+   "down": 301,
+   "right": 199,
+   "up": 0
+  },
+  "choice_steps_onto_hole": 0.15
+ }
+}

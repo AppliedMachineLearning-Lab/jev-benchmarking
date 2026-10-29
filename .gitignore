@@ -3,11 +3,14 @@ data/
 logs/
 # open-model JSONL outputs (imported into cache/responses.db)
 runs/
+# sequential episode logs (one JSON line per episode); only their *.summary.json files are tracked
+results/**/*.jsonl
 models/
 cache/*
 deep-dive/
 *.db
 .env
+.env.local
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -236,3 +239,5 @@ paper/*
 
 # v1 version of the paper -> excluded from the gitignore above (is on arxiv anyways)
 !paper/arxiv_v1/
+.venv-babyai/
+.venv-babyai-src/

@@ -107,6 +107,62 @@ visible GPUs. `scripts/marvin/` contains the Slurm scripts we used on the Marvin
 environment setup, prefetching models and datasets for offline GPU jobs, job arrays, and syncing. Adapt paths,
 partitions and e-mail addresses to your own cluster.
 
+## Sequential decisions
+
+The sequential track lets the model choose the next action in an environment at every step: one request per
+step, with the state and one Choice question over the legal actions, executing the most probable option.
+A reference action is logged at every step (never sent to the model), so step accuracy, ECE and Brier score can
+be reported alongside the success rate.
+
+| Task | Implementation | Episodes | Reference action | Environment |
+|---|---|---|---|---|
+| `alfworld` | ALFWorld (`alfworld` package), unseen split, 50 steps | 134 | handcoded ALFWorld expert | `.venv` + `alfworld-download` |
+| `blackjack` | RLCard `blackjack`, default configuration | 5,000 | exact optimum (DP) | `.venv` |
+| `frozenlake` | Gymnasium `FrozenLake-v1`, slippery, random 4x4 and 8x8 maps | 500 | exact optimum (DP) | `.venv` |
+| `textworld` | TextWorld's `tw-make` challenges (coin collector, treasure hunter, cooking), 3 levels x 10 seeds, 50 steps; coin collector and treasure hunter with goal-only objectives | 90 | TextWorld solver (`policy_commands`) | `.venv` |
+| `babyai_text` | original BabyAI-Text packages (Carta et al., 2023), `BabyAI-MixedTrainLocal-v0`, their prompt | 250 | BabyAI bot | `.venv-babyai` |
+| `babyai_text_instructions` | diagnostic only: `babyai_text` with BALROG's instruction prompt (action descriptions, two tips) added to the state | 250 | BabyAI bot | `.venv-babyai` |
+
+Install the sequential dependencies with `pip install -e ".[sequential]"` (then `alfworld-download` for
+ALFWorld). TextWorld games are generated with `tw-make` on first use and cached in `~/.cache/jev-benchmarking/`.
+BabyAI-Text needs an old gym and numpy and therefore its own environment:
+
+```bash
+bash scripts/setup_babyai_text_env.sh          # creates .venv-babyai (Python 3.10) with the original packages
+source .venv-babyai/bin/activate
+```
+
+The API key can also be put in `.env` or `.env.local` (see `.env.example`).
+
+```bash
+python scripts/run_sequential.py blackjack --backend scripted:optimal          # reference policy, free
+python scripts/run_sequential.py textworld --backend scripted:expert           # expert / solver reference
+python scripts/run_sequential.py frozenlake --backend scripted:random --mode sample   # uniform policy (greedy would always move left)
+python scripts/run_sequential.py frozenlake --dry-run                          # requests and cost estimate
+python scripts/run_sequential.py frozenlake --backend jev --limit 1            # one episode first
+python scripts/run_sequential.py frozenlake --backend jev --max-cost 1.0       # full run
+python scripts/run_sequential.py alfworld --backend jev --shard 0 --num-shards 4   # one of 4 parallel processes
+python scripts/run_sequential.py frozenlake --backend hf:Qwen/Qwen3.8-27B --device auto   # open-weight model
+python scripts/run_sequential.py frozenlake --backend jev --summarize          # metrics only
+python scripts/probe_frozenlake.py --backend jev                               # FrozenLake prompt-variant probe
+python scripts/run_sequential.py babyai_text_instructions --backend jev --max-cost 1.0   # BabyAI-Text with BALROG's instruction prompt (diagnostic)
+python scripts/inspect_episode.py frozenlake results/sequential/frozenlake/jev.greedy.eval.jsonl --episode 0   # replay and check one episode
+```
+
+- **Uniform reference policies:** `scripted:random` gives every action the same probability. Run it with
+  `--mode sample`; under the default `--mode greedy` the tie always goes to the first action (in FrozenLake, "left").
+- **Expert labels:** the ALFWorld handcoded expert breaks ties with Python's `random`; the environment seeds it per
+  episode, so the expert's commands are reproducible. The TextWorld expert follows TextWorld's `policy_commands`,
+  which can choose a different (equally winning) plan on a different platform or Python version: on the archived
+  games the expert needs 851 steps in total on Linux (Python 3.13) and 863 on macOS (Python 3.12). Model trajectories
+  do not depend on the expert.
+- **Output:** one JSON line per episode in `results/sequential/<task>/<model>.<mode>.<split>.jsonl` (every step's
+  action, option probabilities, reference action and feedback) and the metrics in `<...>.summary.json`.
+- **Metrics:** success rate (95% bootstrap CI), mean steps, cost per episode, repeat rate, step accuracy against
+  the reference, step ECE and step Brier; for Blackjack and FrozenLake also the regret per decision.
+- **Cache and spend guards:** as for the single-step track; deterministic episodes replay from the cache for free,
+  and runs resume where they stopped.
+
 ## Layout
 
 - `jev_benchmarking/tasks/`: one class per dataset (request construction and gold labels); `probes.py` holds
@@ -117,6 +173,7 @@ partitions and e-mail addresses to your own cluster.
   accuracy, bootstrap confidence intervals
 - `jev_benchmarking/thresholds.py`: per-question Noul thresholds tuned on dev data
 - `jev_benchmarking/report/`: paper tables (LaTeX) and figures (plotnine, tol-colors)
+- `jev_benchmarking/sequential/`: sequential track: environments (`envs/`), episode runner, backends, metrics
 - `scripts/`: entry points; `scripts/marvin/`: Slurm scripts
 - `results/eval/`: per-dataset metrics for Jev; `results/eval/open_models/`: the same for the open-weight models
 - `responses/`: license of the released model responses
@@ -136,7 +193,7 @@ Apache License 2.0.
 ```bibtex
 @misc{deußer2026evaluatingbenchmarkingmodeljev,
       title={Evaluating and Benchmarking the System One Model Jev}, 
-      author={Tobias Deußer and Lorenz Sparrenberg and Rafet Sifa},
+      author={Tobias Deußer and Rajkumar Ramamurthy and Lorenz Sparrenberg and Rafet Sifa},
       year={2026},
       eprint={2609.37647},
       archivePrefix={arXiv},

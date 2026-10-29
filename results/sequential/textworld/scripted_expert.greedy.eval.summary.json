@@ -1,0 +1,65 @@
+{
+ "env": "textworld",
+ "model": "scripted:expert",
+ "n_episodes": 90,
+ "success_rate": 1.0,
+ "success_ci95": [
+  1.0,
+  1.0
+ ],
+ "mean_steps": 9.455555555555556,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.0,
+ "step_accuracy_vs_expert": 1.0,
+ "step_ece": 0.0,
+ "step_brier": 0.0,
+ "details": {
+  "env": "textworld",
+  "model": "scripted:expert",
+  "mode": "greedy",
+  "n_episodes": 90,
+  "success_rate": 1.0,
+  "success_ci95": [
+   1.0,
+   1.0
+  ],
+  "mean_reward": 1.0,
+  "reward_ci95": [
+   1.0,
+   1.0
+  ],
+  "mean_steps": 9.455555555555556,
+  "truncated_rate": 0.0,
+  "n_requests": 851,
+  "input_tokens": 0,
+  "tokens_per_request": 0.0,
+  "cost_usd": 0.0,
+  "mean_latency_s": 9.28319623971798e-06,
+  "success_by_subset": {
+   "coin_collector": {
+    "n": 30,
+    "success_rate": 1.0
+   },
+   "cooking": {
+    "n": 30,
+    "success_rate": 1.0
+   },
+   "treasure_hunter": {
+    "n": 30,
+    "success_rate": 1.0
+   }
+  },
+  "repeat_step_rate": 0.0,
+  "episodes_with_loop": 0.0,
+  "mean_top_action_prob": 1.0,
+  "expert_agreement": 1.0,
+  "action_vs_expert_calibration": {
+   "n": 851,
+   "mean_p": 1.0,
+   "rate": 1.0,
+   "ece": 0.0,
+   "brier": 0.0
+  },
+  "n_uninformative_steps": 0
+ }
+}

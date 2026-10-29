@@ -1,0 +1,73 @@
+{
+ "env": "babyai_text",
+ "model": "scripted:expert",
+ "n_episodes": 250,
+ "success_rate": 1.0,
+ "success_ci95": [
+  1.0,
+  1.0
+ ],
+ "mean_steps": 10.344,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.0,
+ "step_accuracy_vs_expert": 1.0,
+ "step_ece": 0.0,
+ "step_brier": 0.0,
+ "details": {
+  "env": "babyai_text",
+  "model": "scripted:expert",
+  "mode": "greedy",
+  "n_episodes": 250,
+  "success_rate": 1.0,
+  "success_ci95": [
+   1.0,
+   1.0
+  ],
+  "mean_reward": 1.0,
+  "reward_ci95": [
+   1.0,
+   1.0
+  ],
+  "mean_steps": 10.344,
+  "truncated_rate": 0.0,
+  "n_requests": 2586,
+  "input_tokens": 0,
+  "tokens_per_request": 0.0,
+  "cost_usd": 0.0,
+  "mean_latency_s": 0.0,
+  "success_by_subset": {
+   "goto": {
+    "n": 50,
+    "success_rate": 1.0
+   },
+   "open": {
+    "n": 50,
+    "success_rate": 1.0
+   },
+   "pick_up_seq_go_to": {
+    "n": 50,
+    "success_rate": 1.0
+   },
+   "pickup": {
+    "n": 50,
+    "success_rate": 1.0
+   },
+   "putnext": {
+    "n": 50,
+    "success_rate": 1.0
+   }
+  },
+  "repeat_step_rate": 0.0,
+  "episodes_with_loop": 0.0,
+  "mean_top_action_prob": 1.0,
+  "expert_agreement": 1.0,
+  "action_vs_expert_calibration": {
+   "n": 2586,
+   "mean_p": 1.0,
+   "rate": 1.0,
+   "ece": 0.0,
+   "brier": 0.0
+  },
+  "n_uninformative_steps": 0
+ }
+}

@@ -1,0 +1,58 @@
+{
+ "env": "blackjack",
+ "model": "hf:Qwen/Qwen3.8-27B",
+ "n_episodes": 5000,
+ "success_rate": 0.412,
+ "success_ci95": [
+  0.3988,
+  0.425805
+ ],
+ "mean_steps": 1.6018,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.0,
+ "step_accuracy_vs_expert": 0.8485453864402547,
+ "step_ece": 0.03712786486745041,
+ "step_brier": 0.21984746176863207,
+ "mean_reward": -0.0754,
+ "mean_regret_per_decision": 0.023452103979345645,
+ "details": {
+  "env": "blackjack",
+  "model": "hf:Qwen/Qwen3.8-27B",
+  "mode": "greedy",
+  "n_episodes": 5000,
+  "success_rate": 0.412,
+  "success_ci95": [
+   0.3988,
+   0.425805
+  ],
+  "mean_reward": -0.0754,
+  "reward_ci95": [
+   -0.100605,
+   -0.049
+  ],
+  "mean_steps": 1.6018,
+  "truncated_rate": 0.0,
+  "n_requests": 8009,
+  "input_tokens": 2318289,
+  "tokens_per_request": 289.46048195779747,
+  "cost_usd": 0.0,
+  "mean_latency_s": 0.4233627143701951,
+  "repeat_step_rate": 0.0,
+  "episodes_with_loop": 0.0,
+  "mean_top_action_prob": 0.8558186349413893,
+  "expert_agreement": 0.8485453864402547,
+  "action_vs_expert_calibration": {
+   "n": 8009,
+   "mean_p": 0.8558186349413893,
+   "rate": 0.8485453864402547,
+   "ece": 0.03712786486745041,
+   "brier": 0.21984746176863207
+  },
+  "n_uninformative_steps": 0,
+  "exact": {
+   "optimal_action_rate": 0.8485453864402547,
+   "mean_regret_per_decision": 0.023452103979345645,
+   "mean_prob_on_optimal_action": 0.7791474692693539
+  }
+ }
+}

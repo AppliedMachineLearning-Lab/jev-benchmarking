@@ -1,0 +1,67 @@
+{
+ "env": "frozenlake",
+ "model": "hf:Qwen/Qwen3.8-27B",
+ "n_episodes": 500,
+ "success_rate": 0.094,
+ "success_ci95": [
+  0.07,
+  0.12004999999999995
+ ],
+ "mean_steps": 8.548,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.18624239588207767,
+ "step_accuracy_vs_expert": 0.26321946654188116,
+ "step_ece": 0.26350453258785766,
+ "step_brier": 0.9086482646776238,
+ "mean_reward": 0.094,
+ "mean_regret_per_decision": 0.07150547948837886,
+ "details": {
+  "env": "frozenlake",
+  "model": "hf:Qwen/Qwen3.8-27B",
+  "mode": "greedy",
+  "n_episodes": 500,
+  "success_rate": 0.094,
+  "success_ci95": [
+   0.07,
+   0.12004999999999995
+  ],
+  "mean_reward": 0.094,
+  "reward_ci95": [
+   0.07,
+   0.12004999999999995
+  ],
+  "mean_steps": 8.548,
+  "truncated_rate": 0.0,
+  "n_requests": 4274,
+  "input_tokens": 1892563,
+  "tokens_per_request": 442.80837622835753,
+  "cost_usd": 0.0,
+  "mean_latency_s": 0.5184905190803507,
+  "success_by_subset": {
+   "4x4": {
+    "n": 250,
+    "success_rate": 0.18
+   },
+   "8x8": {
+    "n": 250,
+    "success_rate": 0.008
+   }
+  },
+  "repeat_step_rate": 0.18624239588207767,
+  "episodes_with_loop": 0.1,
+  "mean_top_action_prob": 0.5145613984455459,
+  "expert_agreement": 0.26321946654188116,
+  "action_vs_expert_calibration": {
+   "n": 4274,
+   "mean_p": 0.5145613984455459,
+   "rate": 0.26321946654188116,
+   "ece": 0.26350453258785766,
+   "brier": 0.9086482646776238
+  },
+  "n_uninformative_steps": 0,
+  "exact": {
+   "optimal_action_rate": 0.26321946654188116,
+   "mean_regret_per_decision": 0.07150547948837886
+  }
+ }
+}

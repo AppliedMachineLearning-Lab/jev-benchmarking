@@ -1,0 +1,73 @@
+{
+ "env": "babyai_text",
+ "model": "hf:Qwen/Qwen3.8-27B",
+ "n_episodes": 250,
+ "success_rate": 0.168,
+ "success_ci95": [
+  0.124,
+  0.216
+ ],
+ "mean_steps": 90.016,
+ "cost_per_episode_usd": 0.0,
+ "repeat_step_rate": 0.894107714184145,
+ "step_accuracy_vs_expert": 0.05932278706007821,
+ "step_ece": 0.5694046999053728,
+ "step_brier": 1.140725026721282,
+ "details": {
+  "env": "babyai_text",
+  "model": "hf:Qwen/Qwen3.8-27B",
+  "mode": "greedy",
+  "n_episodes": 250,
+  "success_rate": 0.168,
+  "success_ci95": [
+   0.124,
+   0.216
+  ],
+  "mean_reward": 0.168,
+  "reward_ci95": [
+   0.124,
+   0.216
+  ],
+  "mean_steps": 90.016,
+  "truncated_rate": 0.832,
+  "n_requests": 22504,
+  "input_tokens": 8995880,
+  "tokens_per_request": 399.7458229648063,
+  "cost_usd": 0.0,
+  "mean_latency_s": 0.42774727555786196,
+  "success_by_subset": {
+   "goto": {
+    "n": 50,
+    "success_rate": 0.48
+   },
+   "open": {
+    "n": 50,
+    "success_rate": 0.06
+   },
+   "pick_up_seq_go_to": {
+    "n": 50,
+    "success_rate": 0.16
+   },
+   "pickup": {
+    "n": 50,
+    "success_rate": 0.14
+   },
+   "putnext": {
+    "n": 50,
+    "success_rate": 0.0
+   }
+  },
+  "repeat_step_rate": 0.894107714184145,
+  "episodes_with_loop": 0.756,
+  "mean_top_action_prob": 0.6285498078309414,
+  "expert_agreement": 0.05932278706007821,
+  "action_vs_expert_calibration": {
+   "n": 22504,
+   "mean_p": 0.6285498078309414,
+   "rate": 0.05932278706007821,
+   "ece": 0.5694046999053728,
+   "brier": 1.140725026721282
+  },
+  "n_uninformative_steps": 0
+ }
+}

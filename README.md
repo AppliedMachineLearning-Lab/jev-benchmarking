@@ -1,7 +1,7 @@
 # Evaluating and Benchmarking the System One Model Jev
 
 Code for the paper **[Evaluating and Benchmarking the System One Model Jev](https://arxiv.org/abs/2609.37647)**
-(Tobias Deußer, Lorenz Sparrenberg, Rafet Sifa; arXiv:2609.37647, 2026).
+(Tobias Deußer, Rajkumar Ramamurthy, Lorenz Sparrenberg, Rafet Sifa; arXiv:2609.37647, 2026).
 
 - **Paper:** <https://arxiv.org/abs/2609.37647>
 - **Raw responses (dataset):** <https://doi.org/10.5281/zenodo.23039006>
@@ -229,7 +229,7 @@ Apache License 2.0.
 ```bibtex
 @misc{deußer2026evaluatingbenchmarkingmodeljev,
       title={Evaluating and Benchmarking the System One Model Jev}, 
-      author={Tobias Deußer and Lorenz Sparrenberg and Rafet Sifa},
+      author={Tobias Deußer and Rajkumar Ramamurthy and Lorenz Sparrenberg and Rafet Sifa},
       year={2026},
       eprint={2609.37647},
       archivePrefix={arXiv},

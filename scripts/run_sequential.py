@@ -12,6 +12,7 @@ Examples:
   python scripts/run_sequential.py alfworld --backend jev --shard 3 --num-shards 8        # one of 8 parallel processes
   python scripts/run_sequential.py babyai_text_instructions --backend jev --max-cost 1.0   # diagnostic prompt variant
   python scripts/run_sequential.py blackjack --backend jev --summarize                    # metrics only (all shards)
+  python scripts/run_sequential.py blackjack --backend hf:Qwen/Qwen3.8-27B --offline      # replay from the cache only
 """
 
 import argparse
@@ -23,8 +24,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from jev_benchmarking.cache import ResponseCache  # noqa: E402
-from jev_benchmarking.config import MODEL, USD_PER_INPUT_TOKEN  # noqa: E402
-from jev_benchmarking.sequential.backends import FunctionBackend, JevBackend, OpenModelBackend, estimate_tokens  # noqa: E402
+from jev_benchmarking.config import MODEL, USD_PER_INPUT_TOKEN, cache_db_path  # noqa: E402
+from jev_benchmarking.sequential.backends import (  # noqa: E402
+    CacheOnlyBackend, FunctionBackend, JevBackend, OpenModelBackend, estimate_tokens,
+)
 from jev_benchmarking.sequential.metrics import summarize  # noqa: E402
 from jev_benchmarking.sequential.runner import episodes_path, load_episodes, run  # noqa: E402
 
@@ -58,6 +61,11 @@ def make_env(name: str):
 
 
 def make_backend(spec: str, env_name: str, scripted: dict, args):
+    if args.offline and (spec == "jev" or spec.startswith("hf:")):
+        model = MODEL if spec == "jev" else spec
+        if not cache_db_path(model).is_file():
+            raise SystemExit(f"--offline: {cache_db_path(model)} not found (set JEV_CACHE_DB)")
+        return CacheOnlyBackend(model, ResponseCache(model=model))
     if spec == "jev":
         return JevBackend(ResponseCache(model=MODEL), max_cost_usd=args.max_cost)
     if spec.startswith("hf:"):
@@ -105,6 +113,8 @@ def main() -> None:
     ap.add_argument("--num-shards", type=int, default=1)
     ap.add_argument("--dry-run", action="store_true", help="estimate requests, tokens and Jev cost with a scripted policy")
     ap.add_argument("--summarize", action="store_true", help="only compute metrics from existing episode logs")
+    ap.add_argument("--offline", action="store_true",
+                    help="jev/hf: answer from the cache only (no API key or model weights); stop at the first uncached request")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 

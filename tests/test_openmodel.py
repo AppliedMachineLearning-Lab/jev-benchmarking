@@ -87,6 +87,12 @@ def test_each_model_gets_its_own_database(tmp_path):
     r = subprocess.run([sys.executable, "scripts/import_responses.py", str(jsonl)], env=env, capture_output=True, text=True)
     assert r.returncode != 0 and "refusing" in r.stderr
 
+    # The other databases follow the stem of JEV_CACHE_DB (the sequential responses on Zenodo).
+    env["JEV_CACHE_DB"] = str(tmp_path / "sequential_responses.db")
+    code = "from jev_benchmarking.config import MODEL, cache_db_path; print(cache_db_path(MODEL).name, cache_db_path('hf:org/tiny').name)"
+    r = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True, check=True)
+    assert r.stdout.split() == ["sequential_responses.db", "sequential_responses.org__tiny.db"]
+
 
 @pytest.mark.skipif(os.environ.get("JEV_TEST_OPENMODEL") != "1", reason="downloads a tiny model; set JEV_TEST_OPENMODEL=1")
 def test_chunked_prefill_equals_single_pass():

@@ -40,9 +40,10 @@ def model_slug(model: str) -> str:
 
 
 def cache_db_path(model: str) -> Path:
-    """One response database per model: Jev keeps `responses.db`, others get `responses.<org>__<name>.db`."""
+    """One response database per model: Jev keeps `responses.db`, others get `responses.<org>__<name>.db`.
+    The other names follow the stem of JEV_CACHE_DB, e.g. `sequential_responses.db` -> `sequential_responses.<slug>.db`."""
     slug = model_slug(model)
-    return CACHE_DB if not slug else CACHE_DB.parent / f"responses.{slug}.db"
+    return CACHE_DB if not slug else CACHE_DB.parent / f"{CACHE_DB.stem}.{slug}.db"
 
 
 # https://docs.typesafe.ai/models: charged per input token, output tokens are free.

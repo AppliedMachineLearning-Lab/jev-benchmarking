@@ -10,8 +10,9 @@ The repository benchmarks TypeSafe's [Jev](https://docs.typesafe.ai/introduction
 zero-shot on 37 public datasets, and compares it with two open-weight LLMs (Qwen3.8-27B, Gemma-4-E4B) scored on
 identical requests via their exact option probabilities. It contains the dataset definitions and question
 templates, the evaluation harness, the analysis code for every table and figure, and the per-dataset results.
-The dataset audit, the selection rationale and the actual API cost are documented in
-[docs/datasets.md](docs/datasets.md).
+A second, [sequential track](#sequential-decisions) lets the models play five multi-step environments (ALFWorld,
+TextWorld, BabyAI-Text, Blackjack, FrozenLake), choosing one action per request. The dataset audit, the
+selection rationale and the actual API cost are documented in [docs/datasets.md](docs/datasets.md).
 
 ## Installation
 
@@ -32,7 +33,8 @@ pip install -e ".[dev,paper]"
 ```
 
 Optional dependency groups: `dev` (tests), `paper` (tables and figures), `openmodel` (scoring open-weight models
-with PyTorch and `transformers`; needs a GPU for real models).
+with PyTorch and `transformers`; needs a GPU for real models), `sequential` (the environments of the
+[sequential track](#sequential-decisions); BabyAI-Text needs a separate environment).
 
 Datasets are downloaded from the Hugging Face Hub on first use. `lytang/LLM-AggreFact` is gated: accept its terms
 on Hugging Face and log in (`hf auth login`) before using it.
@@ -56,9 +58,38 @@ Responses are keyed by a hash of the exact request. The code rebuilds each reque
 datasets and looks up its response, so a dataset that changes upstream would no longer match its cached
 responses.
 
+The responses of the [sequential track](#sequential-decisions) are in three separate databases with the prefix
+`sequential_`. Point `JEV_CACHE_DB` to the Jev database; the open-model databases next to it are found by
+the same prefix. `--offline` replays every episode from these databases, without an API key or model weights,
+and stops at the first request that is not cached:
+
+```bash
+# download sequential_responses.db, sequential_responses.google__gemma-4-E4B-it.db and
+# sequential_responses.Qwen__Qwen3.8-27B.db from https://doi.org/10.5281/zenodo.23039006 into cache/
+export JEV_CACHE_DB=cache/sequential_responses.db
+for env in blackjack frozenlake alfworld textworld; do
+  for backend in jev hf:Qwen/Qwen3.8-27B hf:google/gemma-4-E4B-it; do
+    python scripts/run_sequential.py $env --backend $backend --offline   # -> results/sequential/<env>/
+  done
+done
+# BabyAI-Text runs in its own environment (see below); Jev also played the diagnostic prompt variant
+for backend in jev hf:Qwen/Qwen3.8-27B hf:google/gemma-4-E4B-it; do
+  .venv-babyai/bin/python scripts/run_sequential.py babyai_text --backend $backend --offline
+done
+.venv-babyai/bin/python scripts/run_sequential.py babyai_text_instructions --backend jev --offline
+python scripts/probe_frozenlake.py --backend jev --offline                # FrozenLake prompt probe
+```
+
+The episodes are played again, so the environments must be installed as described under
+[Sequential decisions](#sequential-decisions); the episode logs and summaries are written to
+`results/sequential/`. The replay reproduces the published summaries except for the latency, which is not
+stored with a response, and the bootstrap CIs of runs played in shards, which depend on the order of the episodes.
+
 ## Running Jev yourself
 
 Set your TypeSafe API key in `TYPESAFE_API_KEY`, or store it in a file and point `TYPESAFE_API_KEY_FILE` to it.
+The commands below run the single-step datasets; the sequential tasks have their own runner, see
+[Sequential decisions](#sequential-decisions).
 
 ```bash
 python scripts/check_api.py                     # validate the key (free: lists models)
@@ -102,6 +133,9 @@ python scripts/import_responses.py runs/gemma/*.jsonl                        # -
 python scripts/evaluate.py all --model hf:google/gemma-4-E4B-it
 ```
 
+On the sequential tasks, open-weight models play directly through `scripts/run_sequential.py --backend hf:<model>`
+(see [Sequential decisions](#sequential-decisions)); no import step is needed.
+
 Runs are resumable and shardable. `--device auto` splits a model that does not fit on one GPU over all
 visible GPUs. `scripts/marvin/` contains the Slurm scripts we used on the Marvin cluster (University of Bonn):
 environment setup, prefetching models and datasets for offline GPU jobs, job arrays, and syncing. Adapt paths,
@@ -144,6 +178,7 @@ python scripts/run_sequential.py frozenlake --backend jev --max-cost 1.0       #
 python scripts/run_sequential.py alfworld --backend jev --shard 0 --num-shards 4   # one of 4 parallel processes
 python scripts/run_sequential.py frozenlake --backend hf:Qwen/Qwen3.8-27B --device auto   # open-weight model
 python scripts/run_sequential.py frozenlake --backend jev --summarize          # metrics only
+python scripts/run_sequential.py frozenlake --backend jev --offline            # replay from the cache, no API key
 python scripts/probe_frozenlake.py --backend jev                               # FrozenLake prompt-variant probe
 python scripts/run_sequential.py babyai_text_instructions --backend jev --max-cost 1.0   # BabyAI-Text with BALROG's instruction prompt (diagnostic)
 python scripts/inspect_episode.py frozenlake results/sequential/frozenlake/jev.greedy.eval.jsonl --episode 0   # replay and check one episode
@@ -161,7 +196,8 @@ python scripts/inspect_episode.py frozenlake results/sequential/frozenlake/jev.g
 - **Metrics:** success rate (95% bootstrap CI), mean steps, cost per episode, repeat rate, step accuracy against
   the reference, step ECE and step Brier; for Blackjack and FrozenLake also the regret per decision.
 - **Cache and spend guards:** as for the single-step track; deterministic episodes replay from the cache for free,
-  and runs resume where they stopped.
+  and runs resume where they stopped. `--offline` replays from the cache alone (see
+  [Reproducing the results without API access](#reproducing-the-results-without-api-access)).
 
 ## Layout
 

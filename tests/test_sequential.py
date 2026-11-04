@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from jev_benchmarking.cache import ResponseCache
-from jev_benchmarking.sequential.backends import BudgetExceeded, FunctionBackend, JevBackend
+from jev_benchmarking.sequential.backends import BudgetExceeded, CacheMiss, CacheOnlyBackend, FunctionBackend, JevBackend
 from jev_benchmarking.sequential.envs.base import ACTION, SUCCESS
 from jev_benchmarking.sequential.envs.blackjack import FULL_DECK, SCRIPTED, Blackjack, dealer_final, state_values
 from jev_benchmarking.sequential.metrics import repeat_metrics, summarize
@@ -86,6 +86,18 @@ def test_jev_episodes_replay_from_cache(tmp_path):
     run(env, JevBackend(cache, max_cost_usd=1.0, transport=fake_api(calls)), limit=30, out=out)
     assert len(calls) == n_first
     assert len(load_episodes(out)) == 30
+
+
+def test_offline_replay_needs_no_api_and_stops_at_a_miss(tmp_path):
+    cache = ResponseCache(tmp_path / "r.db", model="jev-1.13.0")
+    online = tmp_path / "online.jsonl"
+    run(Blackjack(), JevBackend(cache, max_cost_usd=1.0, transport=fake_api([])), limit=30, out=online)
+    offline = tmp_path / "offline.jsonl"
+    run(Blackjack(), CacheOnlyBackend("jev-1.13.0", cache), limit=30, out=offline)
+    assert load_episodes(offline) == [{**ep, "steps": [{**s, "cached": True, "latency_s": 0.0} for s in ep["steps"]],
+                                       "wall_s": ep2["wall_s"]} for ep, ep2 in zip(load_episodes(online), load_episodes(offline))]
+    with pytest.raises(CacheMiss):  # episode 30 was never played
+        run(Blackjack(), CacheOnlyBackend("jev-1.13.0", cache), limit=31, out=offline)
 
 
 def test_budget_cap_stops_run(tmp_path):

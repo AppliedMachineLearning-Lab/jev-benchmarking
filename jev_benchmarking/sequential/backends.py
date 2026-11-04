@@ -140,6 +140,21 @@ class OpenModelBackend(Backend):
                 "diagnostics": {"valid_mass": mass}}
 
 
+class CacheMiss(Exception):
+    """An offline replay met a request that is not in the cache."""
+
+
+class CacheOnlyBackend(Backend):
+    """Replays a finished run from the cache, with no API key or model weights; an uncached request raises."""
+
+    def __init__(self, model: str, cache: ResponseCache):
+        super().__init__(cache)
+        self.model = model
+
+    def _answer(self, state: Any, questions: dict) -> dict:
+        raise CacheMiss(f"{self.model}: request not in the cache ({self.stats.cached} cached so far)")
+
+
 class FunctionBackend(Backend):
     """A Python policy in the API's response format, for baselines (random, expert, basic strategy) and
     tests. `fn(state, questions) -> answers`. Not cached by default: it costs nothing."""

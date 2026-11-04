@@ -13,6 +13,7 @@ Examples:
   python scripts/probe_frozenlake.py --backend scripted:no-slip                # plans as if the ice were not slippery
   python scripts/probe_frozenlake.py --backend jev --max-cost 0.2               # all four variants
   python scripts/probe_frozenlake.py --backend jev --variants base,outcomes
+  python scripts/probe_frozenlake.py --backend jev --offline                    # from the cache only, no API key
 """
 
 import argparse
@@ -27,9 +28,11 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from jev_benchmarking.cache import ResponseCache  # noqa: E402
-from jev_benchmarking.config import MODEL, RESULTS_DIR, model_slug  # noqa: E402
+from jev_benchmarking.config import MODEL, RESULTS_DIR, cache_db_path, model_slug  # noqa: E402
 from jev_benchmarking.metrics import ece  # noqa: E402
-from jev_benchmarking.sequential.backends import FunctionBackend, JevBackend, OpenModelBackend, choice_answer  # noqa: E402
+from jev_benchmarking.sequential.backends import (  # noqa: E402
+    CacheOnlyBackend, FunctionBackend, JevBackend, OpenModelBackend, choice_answer,
+)
 from jev_benchmarking.sequential.envs.base import ACTION  # noqa: E402
 from jev_benchmarking.sequential.envs.frozenlake import (  # noqa: E402
     MOVES, STEP_LIMIT, VARIANTS, FrozenLake, build_request, deterministic_values, state_values,
@@ -72,7 +75,12 @@ def scripted(name: str):
     return fn
 
 
-def make_backend(spec: str, max_cost: float, device: str):
+def make_backend(spec: str, max_cost: float, device: str, offline: bool = False):
+    if offline and (spec == "jev" or spec.startswith("hf:")):
+        model = MODEL if spec == "jev" else spec
+        if not cache_db_path(model).is_file():
+            raise SystemExit(f"--offline: {cache_db_path(model)} not found (set JEV_CACHE_DB)")
+        return CacheOnlyBackend(model, ResponseCache(model=model))
     if spec == "jev":
         return JevBackend(ResponseCache(model=MODEL), max_cost_usd=max_cost)
     if spec.startswith("hf:"):
@@ -119,11 +127,12 @@ def main() -> None:
     ap.add_argument("--per-map", type=int, default=5)
     ap.add_argument("--max-cost", type=float, default=0.2, help="USD cap for this run (Jev only)")
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--offline", action="store_true", help="jev/hf: answer from the cache only (no API key or model weights)")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     pos = positions(args.n_maps, args.per_map)
-    backend = make_backend(args.backend, args.max_cost, args.device)
+    backend = make_backend(args.backend, args.max_cost, args.device, args.offline)
     slug = (model_slug({"jev": MODEL}.get(args.backend, args.backend)) or "jev").replace(":", "_")
     out_dir = RESULTS_DIR / "sequential" / "frozenlake" / "probe"
     out_dir.mkdir(parents=True, exist_ok=True)

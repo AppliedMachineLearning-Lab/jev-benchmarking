@@ -1,10 +1,10 @@
 """Merge the per-shard response caches of the sequential runs into one database per model.
 
-    python scripts/merge_sequential_caches.py runs/alfworld-seqcache cache/sequential
+    python scripts/merge_sequential_caches.py runs/alfworld-seqcache cache/sequential_responses.db
 
 The Slurm jobs write one cache per shard (<src>/<run>/shardNN/responses.<org>__<name>.db), since SQLite's WAL
-is not safe across nodes. This writes <out>/responses.<org>__<name>.db, which run_sequential.py reads with
-JEV_CACHE_DB=<out>/responses.db. Each shard is copied (with its -wal/-shm files) before it is opened, so the
+is not safe across nodes. This writes <out stem>.<org>__<name>.db next to <out> (here
+cache/sequential_responses.<org>__<name>.db), which run_sequential.py reads with JEV_CACHE_DB=<out>. Each shard is copied (with its -wal/-shm files) before it is opened, so the
 sources stay untouched. A key found in several shards is kept once; differing answers for it are reported.
 Finally, every request in the episode logs (results/sequential/<env>/<org>__<name>.*.jsonl) must be in the
 merged database.
@@ -55,7 +55,7 @@ def merge(shards: list[Path], out: Path) -> tuple[set[str], int, int]:
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("src", type=Path, help="directory with <run>/shardNN/responses.<slug>.db")
-    p.add_argument("out", type=Path, help="output directory, e.g. cache/sequential")
+    p.add_argument("out", type=Path, help="JEV_CACHE_DB the merged databases are read with, e.g. cache/sequential_responses.db")
     p.add_argument("--results", type=Path, default=ROOT / "results" / "sequential", help="episode logs to check")
     args = p.parse_args()
 
@@ -64,9 +64,9 @@ def main() -> None:
         by_slug.setdefault(db.name.removeprefix("responses.").removesuffix(".db"), []).append(db)
     if not by_slug:
         raise SystemExit(f"no shard caches under {args.src}")
-    args.out.mkdir(parents=True, exist_ok=True)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
     for slug, shards in by_slug.items():
-        out = args.out / f"responses.{slug}.db"
+        out = args.out.parent / f"{args.out.stem}.{slug}.db"
         if out.exists():
             raise SystemExit(f"{out} exists; remove it to rebuild")
         keys, rows, conflicts = merge(shards, out)

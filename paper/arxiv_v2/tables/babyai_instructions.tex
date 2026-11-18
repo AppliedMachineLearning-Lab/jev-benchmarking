@@ -1,0 +1,17 @@
+\begin{tabular}{l c c}
+    \toprule
+     & Original prompt & + BALROG instructions \\
+    \midrule
+    Success & 0.208 [0.160, 0.256] & 0.256 [0.204, 0.308] \\
+    \rowcolor{gray!10}\quad go to / pick up / pick up, then go to & 0.50 / 0.26 / 0.18 & 0.50 / 0.44 / 0.28 \\
+    \quad open / put next to & 0.08 / 0.02 & 0.02 / 0.04 \\
+    \rowcolor{gray!10}Step accuracy (all steps) & 0.086 & 0.141 \\
+    Step accuracy (first step) & 0.52 & 0.50 \\
+    \rowcolor{gray!10}Repeats & 0.740 & 0.627 \\
+    Steps with unchanged observation & 0.82 & 0.65 \\
+    \rowcolor{gray!10}Forward moves into an obstacle & 0.96 & 0.94 \\
+    Share of turns among actions & 0.07 & 0.28 \\
+    \rowcolor{gray!10}ECE / Brier & 0.469 / 1.132 & 0.387 / 1.028 \\
+    Top $p$ correct / incorrect & 0.56 / 0.55 & 0.56 / 0.52 \\
+    \bottomrule
+\end{tabular}

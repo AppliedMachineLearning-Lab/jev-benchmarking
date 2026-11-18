@@ -1,0 +1,58 @@
+\begin{tabular}{l l c c c c c c }
+    \toprule
+    & & \multicolumn{3}{c}{Score$\uparrow$} & \multicolumn{3}{c}{ECE$\downarrow$} \\
+    \cmidrule(lr){3-5} \cmidrule(lr){6-8}
+    Dataset & Metric & Jev & Qwen3.8-27B & Gemma-4-E4B & Jev & Qwen3.8-27B & Gemma-4-E4B \\
+    \midrule
+    \multicolumn{8}{l}{\textit{Text classification}} \\
+    AG News & Acc. & \textbf{0.885} & 0.867 & 0.862 & 0.077 & 0.081 & 0.122 \\
+    \rowcolor{gray!10}IMDB & Acc. & \textbf{0.965} & 0.965 & 0.956 & 0.019 & 0.018 & 0.039 \\
+    Rotten Tomatoes & Acc. & \textbf{0.933} & 0.932 & 0.901 & 0.038 & 0.039 & 0.092 \\
+    \rowcolor{gray!10}SST-2 & Acc. & \textbf{0.964} & 0.954 & 0.952 & 0.015 & 0.021 & 0.042 \\
+    Emotion & Acc. & \textbf{0.585} & 0.571 & 0.569 & 0.279 & 0.249 & 0.401 \\
+    \rowcolor{gray!10}Financial PhraseBank & Acc. & \textbf{0.730} & 0.677 & 0.652 & 0.138 & 0.150 & 0.326 \\
+    SMS Spam & F$_\text{1}$ & 0.938 & \textbf{0.940} & 0.902 & 0.033 & 0.006 & 0.021 \\
+    \rowcolor{gray!10}Language ID & Acc. & 0.996 & \textbf{0.998} & 0.987 & 0.003 & 0.003 & 0.012 \\
+    GoEmotions & Macro-F$_\text{1}$ & 0.243 & \textbf{0.255} & 0.211 & 0.176 & 0.175 & 0.168 \\
+    \midrule
+    \multicolumn{8}{l}{\textit{Intent and topic routing}} \\
+    Banking77 & Acc. & \textbf{0.797} & 0.774 & 0.670 & 0.087 & 0.094 & 0.267 \\
+    \rowcolor{gray!10}CLINC150 & Acc. & \textbf{0.895} & 0.888 & 0.683 & 0.025 & 0.037 & 0.243 \\
+    SIB-200 & Acc. & \textbf{0.815} & 0.800 & 0.761 & 0.045 & 0.065 & 0.177 \\
+    \midrule
+    \multicolumn{8}{l}{\textit{NLI, paraphrase and grounding}} \\
+    ANLI & Acc. & 0.739 & \textbf{0.740} & 0.539 & 0.102 & 0.092 & 0.417 \\
+    \rowcolor{gray!10}AfriXNLI & Acc. & \textbf{0.640} & 0.636 & 0.515 & 0.165 & 0.142 & 0.390 \\
+    PAWS & Acc. & \textbf{0.850} & 0.836 & 0.741 & 0.040 & 0.056 & 0.196 \\
+    \rowcolor{gray!10}LLM-AggreFact & Bal. Acc. & \textbf{0.786} & 0.769 & 0.756 & 0.128 & 0.202 & 0.156 \\
+    \midrule
+    \multicolumn{8}{l}{\textit{Reading comprehension and knowledge}} \\
+    BoolQ & Acc. & \textbf{0.913} & 0.876 & 0.822 & 0.043 & 0.090 & 0.162 \\
+    \rowcolor{gray!10}Belebele & Acc. & \textbf{0.867} & 0.778 & 0.684 & 0.015 & 0.081 & 0.245 \\
+    PubMedQA & Acc. & \textbf{0.787} & 0.732 & 0.672 & 0.129 & 0.124 & 0.288 \\
+    \rowcolor{gray!10}MMLU & Acc. & \textbf{0.918} & 0.817 & 0.674 & 0.025 & 0.045 & 0.241 \\
+    C-Eval & Acc. & \textbf{0.839} & 0.794 & 0.537 & 0.014 & 0.032 & 0.286 \\
+    \midrule
+    \multicolumn{8}{l}{\textit{Commonsense and reasoning}} \\
+    BIG-bench (MC) & Acc. & \textbf{0.814} & 0.750 & 0.648 & 0.026 & 0.065 & 0.262 \\
+    \rowcolor{gray!10}HellaSwag & Acc. & \textbf{0.955} & 0.949 & 0.829 & 0.019 & 0.019 & 0.128 \\
+    WinoGrande & Acc. & \textbf{0.914} & 0.763 & 0.616 & 0.025 & 0.043 & 0.290 \\
+    \rowcolor{gray!10}ARC (E+C) & Acc. & \textbf{0.988} & 0.980 & 0.932 & 0.005 & 0.007 & 0.048 \\
+    CommonsenseQA & Acc. & \textbf{0.882} & 0.856 & 0.749 & 0.031 & 0.038 & 0.194 \\
+    \rowcolor{gray!10}$\alpha$NLI (ART) & Acc. & 0.839 & \textbf{0.849} & 0.778 & 0.065 & 0.042 & 0.173 \\
+    \midrule
+    \multicolumn{8}{l}{\textit{Safety, moderation and legal}} \\
+    ToxiGen & Acc. (toxic) & \textbf{0.878} & 0.832 & 0.806 & 0.046 & 0.084 & 0.155 \\
+    \rowcolor{gray!10}OpenAI Moderation & Mean AUPRC & \textbf{0.717} & 0.708 & 0.576 & 0.036 & 0.021 & 0.065 \\
+    ToxicChat & F$_\text{1}$ (toxic) & \textbf{0.786} & 0.779 & 0.703 & 0.016 & 0.015 & 0.030 \\
+    \rowcolor{gray!10}Prompt Injections & Acc. & 0.741 & \textbf{0.767} & 0.664 & 0.236 & 0.248 & 0.322 \\
+    AGB-DE & F$_\text{1}$ & \textbf{0.204} & 0.000 & 0.066 & 0.264 & 0.070 & 0.067 \\
+    \rowcolor{gray!10}UNFAIR-ToS & Micro-F$_\text{1}$ & 0.499 & \textbf{0.582} & 0.302 & 0.088 & 0.024 & 0.057 \\
+    \midrule
+    \multicolumn{8}{l}{\textit{Rubric scoring}} \\
+    STS-B & Spearman $\rho$ & 0.890 & \textbf{0.896} & 0.814 & -- & -- & -- \\
+    \rowcolor{gray!10}SST-5 & Acc. & \textbf{0.579} & 0.575 & 0.528 & -- & -- & -- \\
+    SummEval & Mean $\rho$ (summary-level) & \textbf{0.554} & 0.540 & 0.461 & -- & -- & -- \\
+    \rowcolor{gray!10}HelpSteer2 & Mean $\rho$ & 0.412 & \textbf{0.443} & 0.385 & -- & -- & -- \\
+    \bottomrule
+\end{tabular}

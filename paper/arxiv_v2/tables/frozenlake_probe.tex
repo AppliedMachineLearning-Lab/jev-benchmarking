@@ -1,0 +1,12 @@
+\begin{tabular}{l c c c c c c c c}
+    \toprule
+    Variant & Acc.$\uparrow$ & Away$\uparrow$ & $p_\text{opt}\uparrow$ & Top $p$ & ECE$\downarrow$ & Brier$\downarrow$ & Risky$\downarrow$ & Regret$\downarrow$ \\
+    \midrule
+    Base & 0.320 & 0.000 & 0.307 & 0.71 / 0.72 & 0.398 & 1.005 & 0.394 & 0.091 \\
+    \rowcolor{gray!10}Safety & 0.370 & 0.098 & 0.330 & 0.53 / 0.52 & 0.170 & 0.751 & 0.368 & 0.084 \\
+    Outcomes & 0.624 & 0.615 & 0.512 & 0.68 / 0.64 & 0.084 & 0.545 & 0.128 & 0.020 \\
+    \rowcolor{gray!10}Deterministic & 0.838 & 0.000 & 0.808 & 0.82 / 0.76 & 0.073 & 0.238 & 0.150 & -- \\
+    \midrule
+    No-slip planner (scripted, base) & 0.312 & 0.069 & 0.312 & -- & -- & -- & 0.400 & 0.092 \\
+    \bottomrule
+\end{tabular}

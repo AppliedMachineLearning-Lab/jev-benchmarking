@@ -1,0 +1,11 @@
+\begin{tabularx}{\textwidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}p{3.4cm}@{}}
+    \toprule
+    Task & State in each request & Choice options & Goal \\
+    \midrule
+    ALFWorld & Task description, first observation (the room and its receptacles), current observation, full history of commands and feedback, steps taken and left & Admissible text commands except \texttt{help}, e.g.\ \texttt{go to fridge 1}, \texttt{heat mug 1 with microwave 1} (15--44) & Complete the household task, e.g.\ put a clean mug in the coffee machine, within 50 steps \\
+    \rowcolor{gray!10}BabyAI-Text & The prompt of \citet{carta2023grounding}: the possible actions, the mission, and the last three observations (objects and walls in view relative to the agent, e.g.\ ``a grey ball 1 step right'') with the two actions between them & Turn left, turn right, go forward, pick up, drop, toggle & Complete the mission, e.g.\ go to the grey ball, within 64 or 128 steps \\
+    TextWorld & Objective, first observation, current room description, inventory, full history of commands and feedback, steps taken and left & Admissible text commands, e.g.\ \texttt{go east}, \texttt{unlock box with key}, \texttt{slice carrot with knife} (3--72) & Collect the coin, find the named object, or prepare and eat the meal, within 50 steps \\
+    \rowcolor{gray!10}Blackjack & Rules, the player's cards and total, whether the total is soft, the dealer's face-up card & Hit, stand & Beat the dealer without exceeding 21 (one hand per episode) \\
+    FrozenLake & Rules including the slip probabilities, the map with and without the agent, the agent's row, column and tile, steps taken and left & Left, down, right, up & Reach the goal without falling into a hole, within 100 ($4{\times}4$) or 200 ($8{\times}8$) steps \\
+    \bottomrule
+\end{tabularx}

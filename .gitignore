@@ -239,5 +239,7 @@ paper/*
 
 # v1 version of the paper -> excluded from the gitignore above (is on arxiv anyways)
 !paper/arxiv_v1/
+# v2 version of the paper (as submitted to arxiv)
+!paper/arxiv_v2/
 .venv-babyai/
 .venv-babyai-src/
